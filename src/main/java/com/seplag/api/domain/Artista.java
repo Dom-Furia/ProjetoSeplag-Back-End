@@ -24,7 +24,6 @@ public class Artista {
 
     private String nome;
     private String nacionalidade;
-    private String imgUrl;
     private Date criadoEm;
 
     @OneToMany(mappedBy = "artista", cascade = CascadeType.ALL)

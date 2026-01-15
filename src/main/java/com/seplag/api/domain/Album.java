@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -18,13 +19,13 @@ import java.util.UUID;
 
 public class Album {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
-
 
     private String nomeAlbum;
     private String anoLancamento;
-    private String criadoEm;
+    private String imgUrl;
+    private Date criadoEm;
 
     @ManyToOne
     @JoinColumn(name = "artista_id")
