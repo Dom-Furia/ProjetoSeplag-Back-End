@@ -1,12 +1,14 @@
-package com.seplag.api.domain;
+package com.seplag.api.domain.artista;
 
+import com.seplag.api.domain.album.Album;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,13 +21,16 @@ import java.util.UUID;
 public class Artista {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String nome;
     private String nacionalidade;
-    private Date criadoEm;
 
-    @OneToMany(mappedBy = "artista", cascade = CascadeType.ALL)
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant criadoEm;
+
+    @OneToMany(mappedBy = "artista", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Album> albums;
 }
