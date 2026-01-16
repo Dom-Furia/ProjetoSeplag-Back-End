@@ -5,10 +5,11 @@ import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
-
+@Service
 public class MinioStorageService {
     private final MinioClient minioClient;
     private final MinioProperties  properties;
