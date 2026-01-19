@@ -3,7 +3,6 @@ package com.seplag.api.controller;
 import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.service.AlbumService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
