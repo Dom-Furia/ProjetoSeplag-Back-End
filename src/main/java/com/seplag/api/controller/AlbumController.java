@@ -2,11 +2,14 @@ package com.seplag.api.controller;
 
 import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
+import com.seplag.api.domain.album.AlbumResponseDTO;
 import com.seplag.api.service.AlbumService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -35,4 +38,19 @@ public class AlbumController {
         return ResponseEntity.ok().body(album);
 
     }
+
+    @GetMapping
+    public ResponseEntity<List<AlbumResponseDTO>> getAlbums(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int pageSize) {
+        List<AlbumResponseDTO> allAlbums = albumService.getAllAlbums(page, pageSize);
+        return ResponseEntity.ok(allAlbums);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleAlbum(@PathVariable UUID id) {
+        albumService.deleteById(id);
+        return ResponseEntity.ok(
+                Map.of("message","Álbum excluido com sucesso.")
+        );
+    }
+
 }

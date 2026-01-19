@@ -2,11 +2,20 @@ package com.seplag.api.service;
 
 import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
+import com.seplag.api.domain.album.AlbumResponseDTO;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.lang.model.type.UnknownTypeException;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AlbumService {
@@ -41,6 +50,27 @@ public class AlbumService {
         newAlbum.setArtista(artista);
 
         return albumRepository.save(newAlbum);
+    }
+
+    public List<AlbumResponseDTO> getAllAlbums(int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Album> albumPage = albumRepository.findAll(pageable);
+
+        return albumPage.map(album -> new AlbumResponseDTO(
+                album.getId(),
+                album.getNomeAlbum(),
+                album.getAnoLancamento(),
+                album.getImgUrl(),
+                album.getCriadoEm(),
+                album.getArtista().getId(),
+                album.getArtista().getNome())).stream().toList();
+    }
+
+    public void  deleteById(UUID id) {
+        if (!albumRepository.existsById(id)) {
+            throw new EntityNotFoundException("Álbum não encontrado");
+        }
+        albumRepository.deleteById(id);
     }
 
     private String uploadImg(MultipartFile multipartFile) {
