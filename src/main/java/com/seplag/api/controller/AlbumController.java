@@ -5,22 +5,35 @@ import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/album")
 public class AlbumController {
 
-    @Autowired
-    private AlbumService albumService;
+    private final AlbumService albumService;
 
-    @PostMapping
-    public ResponseEntity<Album> createAlbum(@RequestBody AlbumRequestDTO body) {
-        Album newAlbum = this.albumService.createAlbum(body);
-        return ResponseEntity.ok().body(newAlbum);
+
+
+    public AlbumController(AlbumService albumService) {
+        this.albumService = albumService;
+    }
+
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Album> createAlbum(@RequestParam("nomealbum") String nomealbum,
+                                             @RequestParam("anoLancamento") String anoLancamento,
+                                             @RequestParam(value = "imgUrl", required = false) MultipartFile imgUrl,
+                                             @RequestParam("artista_id" ) UUID artistaId
+    ) {
+        AlbumRequestDTO albumRequestDTO = new AlbumRequestDTO(nomealbum,
+                anoLancamento,
+                imgUrl,
+                artistaId);
+        Album album = albumService.createAlbum(albumRequestDTO);
+        return ResponseEntity.ok().body(album);
 
     }
 }
