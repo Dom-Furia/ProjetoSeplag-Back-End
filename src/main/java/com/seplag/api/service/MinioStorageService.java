@@ -6,6 +6,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class MinioStorageService {
         this.properties = minioProperties;
     }
 
+    @Transactional
     public String upload(MultipartFile file) {
         try {
             createBucketIfNotExists();

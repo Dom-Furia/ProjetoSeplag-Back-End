@@ -5,6 +5,7 @@ import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.ArtistaRequestDTO;
 import com.seplag.api.repositories.ArtistaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ArtistaService {
@@ -15,6 +16,7 @@ public class ArtistaService {
         this.artistaRepository = artistaRepository;
     }
 
+    @Transactional
     public Artista createArtista(ArtistaRequestDTO data) {
 
         Artista newArtista = new Artista();

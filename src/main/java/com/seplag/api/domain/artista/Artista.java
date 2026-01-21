@@ -27,6 +27,10 @@ public class Artista {
     private String nome;
     private String nacionalidade;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoArtista tipo;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant criadoEm;
