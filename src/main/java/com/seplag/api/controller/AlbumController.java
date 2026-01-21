@@ -3,6 +3,7 @@ package com.seplag.api.controller;
 import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.domain.album.AlbumResponseDTO;
+import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.service.AlbumService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +52,18 @@ public class AlbumController {
         return ResponseEntity.ok(
                 Map.of("message","Álbum excluido com sucesso.")
         );
+    }
+
+    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<Album> updateAlbum(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String nomeAlbum,
+            @RequestParam(required = false) String anoLancamento,
+            @RequestParam(required = false) MultipartFile imgUrl
+    ) {
+        AlbumUpdateDTO dto = new AlbumUpdateDTO(nomeAlbum, anoLancamento, imgUrl);
+        Album album = albumService.updatePartial(id, dto);
+        return ResponseEntity.ok(album);
     }
 
 }

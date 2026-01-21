@@ -3,6 +3,7 @@ package com.seplag.api.service;
 import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.domain.album.AlbumResponseDTO;
+import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
@@ -71,6 +72,27 @@ public class AlbumService {
             throw new EntityNotFoundException("Álbum não encontrado");
         }
         albumRepository.deleteById(id);
+    }
+
+    public Album updatePartial(UUID id, AlbumUpdateDTO dto) {
+
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));
+
+        if (dto.nomealbum() != null) {
+            album.setNomeAlbum(dto.nomealbum());
+        }
+
+        if (dto.anoLancamento() != null) {
+            album.setAnoLancamento(dto.anoLancamento());
+        }
+
+        if (dto.imgUrl() != null && !dto.imgUrl().isEmpty()) {
+            String novaUrl = minioStorageService.upload(dto.imgUrl());
+            album.setImgUrl(novaUrl);
+        }
+
+        return albumRepository.save(album);
     }
 
     private String uploadImg(MultipartFile multipartFile) {
