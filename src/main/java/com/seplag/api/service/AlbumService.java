@@ -5,6 +5,7 @@ import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.domain.album.AlbumResponseDTO;
 import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.Artista;
+import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.lang.model.type.UnknownTypeException;
@@ -34,6 +36,7 @@ public class AlbumService {
         this.artistaRepository = artistaRepository;
     }
 
+    @Transactional
     public Album createAlbum(AlbumRequestDTO data) {
         String imgUrl = null;
 
@@ -53,9 +56,27 @@ public class AlbumService {
         return albumRepository.save(newAlbum);
     }
 
-    public List<AlbumResponseDTO> getAllAlbums(int page, int pageSize) {
+    @Transactional(readOnly = true)
+    public List<AlbumResponseDTO> getAllAlbums(
+            int page,
+            int pageSize,
+            TipoArtista tipo,
+            String nomeArtista
+    ) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Page<Album> albumPage = albumRepository.findAll(pageable);
+        Page<Album> albumPage;
+
+        if (tipo != null && nomeArtista != null) {
+            albumPage = albumRepository
+                    .findByArtista_TipoAndArtista_NomeContainingIgnoreCase(
+                            tipo, nomeArtista, pageable
+                    );
+        } else if (tipo != null) {
+            albumPage = albumRepository.findByArtista_Tipo(tipo, pageable);
+        } else {
+            albumPage = albumRepository.findAll(pageable);
+        }
+
 
         return albumPage.map(album -> new AlbumResponseDTO(
                 album.getId(),
@@ -64,9 +85,11 @@ public class AlbumService {
                 album.getImgUrl(),
                 album.getCriadoEm(),
                 album.getArtista().getId(),
-                album.getArtista().getNome())).stream().toList();
+                album.getArtista().getNome())
+        ).stream().toList();
     }
 
+    @Transactional
     public void  deleteById(UUID id) {
         if (!albumRepository.existsById(id)) {
             throw new EntityNotFoundException("Álbum não encontrado");
@@ -74,6 +97,7 @@ public class AlbumService {
         albumRepository.deleteById(id);
     }
 
+    @Transactional
     public Album updatePartial(UUID id, AlbumUpdateDTO dto) {
 
         Album album = albumRepository.findById(id)
@@ -94,6 +118,7 @@ public class AlbumService {
 
         return albumRepository.save(album);
     }
+
 
     private String uploadImg(MultipartFile multipartFile) {
         return minioStorageService.upload(multipartFile);

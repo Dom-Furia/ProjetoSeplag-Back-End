@@ -4,6 +4,7 @@ import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.album.AlbumRequestDTO;
 import com.seplag.api.domain.album.AlbumResponseDTO;
 import com.seplag.api.domain.album.AlbumUpdateDTO;
+import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.service.AlbumService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +42,14 @@ public class AlbumController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AlbumResponseDTO>> getAlbums(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int pageSize) {
-        List<AlbumResponseDTO> allAlbums = albumService.getAllAlbums(page, pageSize);
+    public ResponseEntity<List<AlbumResponseDTO>> getAlbums(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false)TipoArtista tipo,
+            @RequestParam(required = false)String nomeArtista
+
+            ) {
+        List<AlbumResponseDTO> allAlbums = albumService.getAllAlbums(page, pageSize, null, null);
         return ResponseEntity.ok(allAlbums);
     }
 
