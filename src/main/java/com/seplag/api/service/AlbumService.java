@@ -9,9 +9,11 @@ import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,9 +63,12 @@ public class AlbumService {
             int page,
             int pageSize,
             TipoArtista tipo,
-            String nomeArtista
+            String nomeArtista,
+            Sort.Direction order
     ) {
-        Pageable pageable = PageRequest.of(page, pageSize);
+        Sort sort = Sort.by(order, "artista.nome");
+
+        Pageable pageable = PageRequest.of(page, pageSize,sort );
         Page<Album> albumPage;
 
         if (tipo != null && nomeArtista != null) {
@@ -73,7 +78,9 @@ public class AlbumService {
                     );
         } else if (tipo != null) {
             albumPage = albumRepository.findByArtista_Tipo(tipo, pageable);
-        } else {
+        }  else if (nomeArtista != null) {
+            albumPage = albumRepository.findByArtista_NomeContainingIgnoreCase(nomeArtista, pageable);
+        }else {
             albumPage = albumRepository.findAll(pageable);
         }
 

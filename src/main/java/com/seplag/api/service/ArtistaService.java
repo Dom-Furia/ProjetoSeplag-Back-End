@@ -22,6 +22,7 @@ public class ArtistaService {
         Artista newArtista = new Artista();
         newArtista.setNome(data.nome());
         newArtista.setNacionalidade(data.nacionalidade());
+        newArtista.setTipo(data.tipo());
 
         return artistaRepository.save(newArtista);
     }

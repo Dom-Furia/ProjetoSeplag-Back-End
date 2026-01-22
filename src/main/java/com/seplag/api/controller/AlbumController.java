@@ -6,6 +6,7 @@ import com.seplag.api.domain.album.AlbumResponseDTO;
 import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.service.AlbumService;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,11 +46,18 @@ public class AlbumController {
     public ResponseEntity<List<AlbumResponseDTO>> getAlbums(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false)TipoArtista tipo,
+            @RequestParam(defaultValue = "ASC") Sort.Direction order,
+            @RequestParam(required = false)String tipo,
             @RequestParam(required = false)String nomeArtista
 
             ) {
-        List<AlbumResponseDTO> allAlbums = albumService.getAllAlbums(page, pageSize, null, null);
+        TipoArtista tipoEnum = null;
+
+        if (tipo != null) {
+            tipoEnum = TipoArtista.valueOf(tipo.toUpperCase());
+        }
+
+        List<AlbumResponseDTO> allAlbums = albumService.getAllAlbums(page, pageSize,tipoEnum  , nomeArtista, order);
         return ResponseEntity.ok(allAlbums);
     }
 

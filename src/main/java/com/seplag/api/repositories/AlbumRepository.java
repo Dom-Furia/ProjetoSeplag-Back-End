@@ -19,4 +19,9 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
             String nome,
             Pageable pageable
     );
+
+    Page<Album> findByArtista_NomeContainingIgnoreCase(
+            String nome,
+            Pageable pageable
+    );
 }
