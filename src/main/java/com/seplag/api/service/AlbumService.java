@@ -9,7 +9,6 @@ import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.lang.model.type.UnknownTypeException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,6 +29,8 @@ public class AlbumService {
     private final ArtistaRepository artistaRepository;
 
 
+
+    //Construtor
     public AlbumService(MinioStorageService minioStorage,
                         AlbumRepository albumRepository,
                         ArtistaRepository artistaRepository)
@@ -39,65 +41,49 @@ public class AlbumService {
     }
 
     @Transactional
-    public Album createAlbum(AlbumRequestDTO data) {
+    public Album createAlbumV1(AlbumRequestDTO data) {
         String imgUrl = null;
 
         if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
             imgUrl = this.uploadImg(data.imgUrl());
 
         }
-        Artista artista = artistaRepository.findById(data.artistaId())
-                .orElseThrow(() -> new RuntimeException("Artista não encontrada"));
+
+        Set<Artista> artistas = new HashSet<>(artistaRepository.findAllById(data.artistaIds()));
 
         Album newAlbum = new Album();
         newAlbum.setNomeAlbum(data.nomealbum());
         newAlbum.setAnoLancamento(data.anoLancamento());
         newAlbum.setImgUrl(imgUrl);
-        newAlbum.setArtista(artista);
-
+        newAlbum.setArtistas(artistas);
         return albumRepository.save(newAlbum);
     }
 
+
     @Transactional(readOnly = true)
-    public List<AlbumResponseDTO> getAllAlbums(
-            int page,
-            int pageSize,
-            TipoArtista tipo,
-            String nomeArtista,
-            Sort.Direction order
-    ) {
-        Sort sort = Sort.by(order, "artista.nome");
-
-        Pageable pageable = PageRequest.of(page, pageSize,sort );
-        Page<Album> albumPage;
-
-        if (tipo != null && nomeArtista != null) {
-            albumPage = albumRepository
-                    .findByArtista_TipoAndArtista_NomeContainingIgnoreCase(
-                            tipo, nomeArtista, pageable
-                    );
-        } else if (tipo != null) {
-            albumPage = albumRepository.findByArtista_Tipo(tipo, pageable);
-        }  else if (nomeArtista != null) {
-            albumPage = albumRepository.findByArtista_NomeContainingIgnoreCase(nomeArtista, pageable);
-        }else {
-            albumPage = albumRepository.findAll(pageable);
+    public List<Album> getAllAlbumsV1(int page, int pageSize, String nomeArtista, Sort.Direction order) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(order, "nomeAlbum"));
+        if (nomeArtista == null || nomeArtista.isBlank()) {
+            return albumRepository.findAll(pageable).getContent();
+        } else {
+            return albumRepository.findByArtistaNome(nomeArtista, pageable).getContent();
         }
-
-
-        return albumPage.map(album -> new AlbumResponseDTO(
-                album.getId(),
-                album.getNomeAlbum(),
-                album.getAnoLancamento(),
-                album.getImgUrl(),
-                album.getCriadoEm(),
-                album.getArtista().getId(),
-                album.getArtista().getNome())
-        ).stream().toList();
     }
 
     @Transactional
-    public void  deleteById(UUID id) {
+    public List<Album> getAllAlbumsV2(
+            int page, int pageSize,
+            String nomeArtista,
+            TipoArtista tipoArtista,
+            Sort.Direction order) {
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(order, "nomeAlbum"));
+        return albumRepository.findByArtistaNomeAndTipo(nomeArtista, tipoArtista, pageable).getContent();
+    }
+
+
+    @Transactional
+    public void  deleteByIdV1(UUID id) {
         if (!albumRepository.existsById(id)) {
             throw new EntityNotFoundException("Álbum não encontrado");
         }
@@ -105,7 +91,7 @@ public class AlbumService {
     }
 
     @Transactional
-    public Album updatePartial(UUID id, AlbumUpdateDTO dto) {
+    public Album updatePartialV1(UUID id, AlbumUpdateDTO dto) {
 
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));

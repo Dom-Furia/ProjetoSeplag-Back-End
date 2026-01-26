@@ -17,7 +17,7 @@ public class ArtistaService {
     }
 
     @Transactional
-    public Artista createArtista(ArtistaRequestDTO data) {
+    public Artista createArtistaV1(ArtistaRequestDTO data) {
 
         Artista newArtista = new Artista();
         newArtista.setNome(data.nome());
