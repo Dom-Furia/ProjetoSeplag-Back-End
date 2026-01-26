@@ -1,5 +1,6 @@
 package com.seplag.api.domain.artista;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seplag.api.domain.album.Album;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +10,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -35,6 +37,8 @@ public class Artista {
     @Column(updatable = false)
     private Instant criadoEm;
 
-    @OneToMany(mappedBy = "artista", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Album> albums;
+    @JsonIgnore
+    @ManyToMany(mappedBy = "artistas", fetch = FetchType.LAZY)
+    private Set<Album> albums = new HashSet<>();
+
 }

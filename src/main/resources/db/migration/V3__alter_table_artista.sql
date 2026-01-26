@@ -1,8 +1,0 @@
-ALTER TABLE artista
-    ADD COLUMN tipo VARCHAR(100);
-
-UPDATE artista
-SET tipo = 'CANTOR';
-
-ALTER TABLE artista
-    ALTER COLUMN tipo SET NOT NULL;

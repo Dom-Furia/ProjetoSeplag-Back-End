@@ -1,6 +1,5 @@
 package com.seplag.api.domain.album;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seplag.api.domain.artista.Artista;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +9,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -33,9 +34,11 @@ public class Album {
     @Column(updatable = false)
     private Instant criadoEm;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artista_id", nullable = false)
-    @JsonIgnore
-    private Artista artista;
-
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "artista_album",
+            joinColumns = @JoinColumn(name = "album_id"),
+            inverseJoinColumns = @JoinColumn(name = "artista_id")
+    )
+    private Set<Artista> artistas = new HashSet<>();
 }
