@@ -3,7 +3,6 @@ package com.seplag.api.security;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.seplag.api.domain.user.User;
 import com.seplag.api.repositories.UserRepository;
-import com.seplag.api.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

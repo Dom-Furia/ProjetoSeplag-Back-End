@@ -1,4 +1,4 @@
-package com.seplag.api.service;
+package com.seplag.api.security;
 
 import com.seplag.api.domain.user.User;
 import com.seplag.api.repositories.UserRepository;

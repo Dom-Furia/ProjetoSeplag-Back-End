@@ -2,7 +2,7 @@ package com.seplag.api.controller;
 
 import com.seplag.api.domain.user.*;
 import com.seplag.api.repositories.UserRepository;
-import com.seplag.api.service.TokenService;
+import com.seplag.api.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
