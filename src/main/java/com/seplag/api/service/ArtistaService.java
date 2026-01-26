@@ -3,6 +3,7 @@ package com.seplag.api.service;
 
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.ArtistaRequestDTO;
+import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.ArtistaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class ArtistaService {
         Artista newArtista = new Artista();
         newArtista.setNome(data.nome());
         newArtista.setNacionalidade(data.nacionalidade());
-        newArtista.setTipo(data.tipo());
+        newArtista.setTipo(TipoArtista.valueOf(data.tipo().toUpperCase()));
 
         return artistaRepository.save(newArtista);
     }

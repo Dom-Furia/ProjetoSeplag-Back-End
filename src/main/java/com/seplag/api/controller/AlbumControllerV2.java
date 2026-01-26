@@ -34,13 +34,11 @@ public class AlbumControllerV2 {
             @RequestParam(required = false) String tipo,
             @RequestParam(defaultValue = "ASC") Sort.Direction order
     ) {
-        TipoArtista tipoEnum = null;
-        if (tipo != null && !tipo.isBlank()) {
-            tipoEnum = TipoArtista.valueOf(tipo.toUpperCase());
-        }
 
-        List<Album> albums = albumService.getAllAlbumsV2(page, pageSize, nomeArtista, tipoEnum, order);
+        List<Album> albums = albumService.getAllAlbumsV2(page, pageSize, nomeArtista, tipo, order);
         return ResponseEntity.ok(albums);
     }
+
+
 
 }

@@ -74,11 +74,17 @@ public class AlbumService {
     public List<Album> getAllAlbumsV2(
             int page, int pageSize,
             String nomeArtista,
-            TipoArtista tipoArtista,
+            String tipo,
             Sort.Direction order) {
 
+        TipoArtista tipoEnum = null;
+        if (tipo != null && !tipo.isBlank()) {
+            tipoEnum = TipoArtista.valueOf(tipo.toUpperCase());
+        }
+        String nomeFiltro = (nomeArtista == null || nomeArtista.isBlank()) ? "" : nomeArtista;
+
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(order, "nomeAlbum"));
-        return albumRepository.findByArtistaNomeAndTipo(nomeArtista, tipoArtista, pageable).getContent();
+        return albumRepository.findByArtistaNomeAndTipo(nomeFiltro, tipoEnum, pageable).getContent();
     }
 
 

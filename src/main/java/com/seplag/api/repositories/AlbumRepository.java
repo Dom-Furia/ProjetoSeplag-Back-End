@@ -8,10 +8,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
+@Repository
 public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
     @NonNull Page<Album> findAll(@NonNull Pageable pageable);
@@ -23,9 +25,14 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
 
     // Filtra por tipo de artista e nome (nome pode ser null)
-    @Query("SELECT DISTINCT a FROM Album a JOIN a.artistas ar " +
-            "WHERE (:nomeArtista IS NULL OR LOWER(ar.nome) LIKE LOWER(CONCAT('%', :nomeArtista, '%'))) " +
-            "AND (:tipoArtista IS NULL OR ar.tipo = :tipoArtista)")
+    @Query("""
+            SELECT DISTINCT a
+            FROM Album a
+            JOIN a.artistas ar
+            WHERE (:nomeArtista IS NULL 
+                   OR ar.nome ILIKE CONCAT('%', :nomeArtista, '%'))
+            AND (:tipoArtista IS NULL OR ar.tipo = :tipoArtista)
+            """)
     Page<Album> findByArtistaNomeAndTipo(
             @Param("nomeArtista") String nomeArtista,
             @Param("tipoArtista") TipoArtista tipoArtista,
