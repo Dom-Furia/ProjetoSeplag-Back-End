@@ -9,12 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/artista")
+@RequestMapping("/api/v1/artista")
 public class ArtistaController {
 
     private final ArtistaService artistaService;
     private AlbumService albumService;
-
 
     public ArtistaController(AlbumService albumService, ArtistaService artistaService) {
         this.albumService = albumService;
@@ -22,8 +21,9 @@ public class ArtistaController {
     }
 
     @PostMapping
-    public ResponseEntity<Artista> createArtista(@RequestBody ArtistaRequestDTO artistaRequestDTO) {
-        Artista artista = artistaService.createArtista(artistaRequestDTO);
+    public ResponseEntity<Artista> createArtistaV1(@RequestBody ArtistaRequestDTO artistaRequestDTO) {
+        Artista artista = artistaService.createArtistaV1(artistaRequestDTO);
         return ResponseEntity.ok(artista);
     }
+
 }
