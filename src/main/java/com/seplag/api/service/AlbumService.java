@@ -46,7 +46,6 @@ public class AlbumService {
 
         if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
             imgUrl = this.uploadImg(data.imgUrl());
-
         }
 
         Set<Artista> artistas = new HashSet<>(artistaRepository.findAllById(data.artistaIds()));
@@ -118,8 +117,23 @@ public class AlbumService {
         return albumRepository.save(album);
     }
 
+    @Transactional
+    public Album updateV1(UUID id, AlbumUpdateDTO dto) {
+
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));
+
+        album.setNomeAlbum(dto.nomealbum());
+        album.setAnoLancamento(dto.anoLancamento());
+        String novaUrl = minioStorageService.upload(dto.imgUrl());
+        album.setImgUrl(novaUrl);
+
+        return albumRepository.save(album);
+    }
+
 
     private String uploadImg(MultipartFile multipartFile) {
+
         return minioStorageService.upload(multipartFile);
     }
 }
