@@ -1,4 +1,4 @@
-# Projeto Back-End com Docker (Java + Spring-Boot + Postgres + MinIO-S3)
+# Projeto Back-End com Docker (Java + Spring-Boot + PostgreSQL + MinIO-S3)
 
 Este projeto utiliza Docker e Docker Compose para  um ambiente completo com:
 
