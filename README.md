@@ -50,9 +50,8 @@ Esse comando irá:
 
 Após os containers estarem rodando, acesse:
                                      
-**Frontend:** http://localhost:4200
 **Backend API:** http://localhost:8080            
-**MySQL:** localhost:3306 (acesso via cliente MySQL)
+**PostgreSQL:** localhost:3306 (acesso via cliente)
 
 
 
