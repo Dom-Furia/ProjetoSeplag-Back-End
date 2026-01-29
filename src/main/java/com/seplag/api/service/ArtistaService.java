@@ -1,6 +1,8 @@
 package com.seplag.api.service;
 
 
+import com.seplag.api.domain.album.Album;
+import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.ArtistaRequestDTO;
 import com.seplag.api.domain.artista.TipoArtista;
@@ -59,6 +61,7 @@ public class ArtistaService {
 
         return artistaRepository.save(artista);
     }
+
 
     @Transactional
     public Artista updateV1(UUID id, ArtistaRequestDTO dto) {

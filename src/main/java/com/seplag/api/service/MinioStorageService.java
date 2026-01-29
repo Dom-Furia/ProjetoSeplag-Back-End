@@ -52,7 +52,7 @@ public class MinioStorageService {
                             .method(Method.GET)
                             .bucket(properties.getBucket())
                             .object(fileName)
-                            .expiry(1, TimeUnit.MINUTES) // 30 minutos
+                            .expiry(30, TimeUnit.MINUTES) // 30 minutos
                             .build()
             );
         } catch (Exception e) {
