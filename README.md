@@ -18,14 +18,28 @@ git clone https://github.com/Dom-Furia/ProjetoSeplag-Back-End.git
 
 2. **Crie o arquivo .env na raiz do projeto**
 
-3. **Edite o arquivo .env com suas credenciais e configurações:**
+3. **Crie o arquivo .env com suas credenciais e configurações:**
 ```bash 
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=meubanco
-DB_USERNAME=usuario
-DB_PASSWORD=senha
-MYSQL_ROOT_PASSWORD=rootpass
+# ===============================
+# DATABASE - POSTGRES
+# ===============================
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+
+# ===============================
+# MINIO (S3)
+# ===============================
+
+MINIO_ENDPOINT=
+MINIO_ROOT_USER=
+MINIO_ROOT_PASSWORD=
+MINIO_BUCKET=
+MINIO_REGION=us-east-1
+
+TOKEN_SECRET=
 ```
 4. **Faça instalação do docker em sua maquina:**
 
