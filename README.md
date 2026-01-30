@@ -55,17 +55,20 @@ docker-compose up -d
 
 ```
 Esse comando irá:
-- **Buildar as imagens do backend e frontend**
+- **Buildar a imagem do Back-end**
 - **Criar os containers**
-- **Subir o banco de dados com volume persistente**
+- **Subir o banco de dados (PostgreSQL)**
+- **Subir o armazenamento de objetos (MinIO-S3)**
 
 
 🌐 URLs de acesso
 
 Após os containers estarem rodando, acesse:
                                      
-**Backend API:** http://localhost:8080            
-**PostgreSQL:** localhost:3306 (acesso via cliente)
+**Backend API:** http://localhost:8080
+**MinIO-S3:** http://localhost:9090  
+**PostgreSQL:** postgres:5432 (acesso via Pgadmin4)
+**Documentação API-Swagger:** http://localhost:8080/swagger-ui/index.html
 
 
 
