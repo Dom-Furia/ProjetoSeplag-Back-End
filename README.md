@@ -51,7 +51,7 @@ link: https://www.docker.com/
 5. **Buildar e subir a aplicação com Docker Compose:**
 
 ```bash
-docker-compose up --build
+docker-compose up -d
 
 ```
 Esse comando irá:
