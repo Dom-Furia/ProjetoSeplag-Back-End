@@ -30,10 +30,11 @@ import java.util.UUID;
 public class AlbumController {
 
     private final AlbumService albumService;
+    private final WebSocketNotificationController webSocketNotificationController;
 
-    public AlbumController(AlbumService albumService) {
-
+    public AlbumController(AlbumService albumService, WebSocketNotificationController webSocketNotificationController) {
         this.albumService = albumService;
+        this.webSocketNotificationController = webSocketNotificationController;
     }
 
     @Operation(
@@ -72,6 +73,9 @@ public class AlbumController {
                 new AlbumRequestDTO(nomealbum, anoLancamento, imgUrl, artistaId);
 
         Album album = albumService.createAlbumV1(albumRequestDTO);
+
+        System.out.println("📢 Enviando álbum via WebSocket: " + album.getNomeAlbum());
+        webSocketNotificationController.notifyNewAlbum(album);
 
         return ResponseEntity.status(201).body(album);
     }
