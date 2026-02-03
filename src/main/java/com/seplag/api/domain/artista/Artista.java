@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -36,6 +37,10 @@ public class Artista {
     @CreationTimestamp
     @Column(updatable = false)
     private Instant criadoEm;
+
+    @UpdateTimestamp
+    @Column(name = "atualizado_em")
+    private Instant atualizadoEm;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "artistas", fetch = FetchType.LAZY)

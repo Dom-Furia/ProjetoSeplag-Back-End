@@ -28,15 +28,13 @@ import java.util.UUID;
 @Tag(name = "Álbuns V1", description = "Endpoints responsáveis pelo cadastro, consulta, atualização e exclusão de álbuns (Versão 1)")
 @SecurityRequirement(name = SecurityConfig.SECURITY)
 public class AlbumController {
-
     private final AlbumService albumService;
-    private final WebSocketNotificationController webSocketNotificationController;
 
     public AlbumController(AlbumService albumService, WebSocketNotificationController webSocketNotificationController) {
         this.albumService = albumService;
-        this.webSocketNotificationController = webSocketNotificationController;
     }
 
+    //-------------------------------Criar Album----------------------------------//
     @Operation(
             summary = "Criar novo álbum",
             description = "Cria um álbum informando nome, ano de lançamento, artistas vinculados e imagem."
@@ -77,6 +75,7 @@ public class AlbumController {
         return ResponseEntity.status(201).body(album);
     }
 
+    //---------------------------------------Listar Albuns-------------------------------//
     @Operation(
             summary = "Listar álbuns",
             description = "Retorna álbuns com paginação, filtro por artista  e ordenação."
@@ -105,6 +104,7 @@ public class AlbumController {
         return ResponseEntity.ok(albums);
     }
 
+    //--------------------------------------Excluir Album------------------------------------//
     @Operation(
             summary = "Excluir álbum",
             description = "Remove um álbum pelo seu ID."
@@ -127,6 +127,7 @@ public class AlbumController {
         );
     }
 
+    //----------------------------------------Atualizar Album PATCH-----------------------------------//
     @Operation(
             summary = "Atualizar parcialmente álbum",
             description = "Atualiza um ou mais campos do álbum (nome, ano ou imagem)."
@@ -162,7 +163,7 @@ public class AlbumController {
         return ResponseEntity.ok(album);
     }
 
-
+    //----------------------------------------Atualizar Album PUT-----------------------------------//
     @Operation(
             summary = "Atualizar álbum",
             description = "Atualiza os campos do álbum (nome, ano ou imagem)."
