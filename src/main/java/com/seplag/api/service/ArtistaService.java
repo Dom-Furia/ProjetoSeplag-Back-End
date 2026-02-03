@@ -1,10 +1,8 @@
 package com.seplag.api.service;
 
 
-import com.seplag.api.domain.album.Album;
-import com.seplag.api.domain.album.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.Artista;
-import com.seplag.api.domain.artista.ArtistaRequestDTO;
+import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +22,18 @@ public class ArtistaService {
 
     @Transactional
     public Artista createArtistaV1(ArtistaRequestDTO data) {
+
+        if (data.nome() == null || data.nome().isBlank()) {
+            throw new IllegalArgumentException("O campo nome é obrigatório");
+        }
+
+        if (data.nacionalidade() == null || data.nacionalidade().isBlank()) {
+            throw new IllegalArgumentException("O campo nacionalidade é obrigatório");
+        }
+
+        if (data.tipo() == null || data.tipo().isBlank()) {
+            throw new IllegalArgumentException("O campo tipo é obrigatório");
+        }
 
         Artista newArtista = new Artista();
         newArtista.setNome(data.nome());

@@ -1,15 +1,14 @@
 package com.seplag.api.service;
 
+import com.seplag.api.controller.WebSocketNotificationController;
 import com.seplag.api.domain.album.Album;
-import com.seplag.api.domain.album.AlbumRequestDTO;
-import com.seplag.api.domain.album.AlbumResponseDTO;
-import com.seplag.api.domain.album.AlbumUpdateDTO;
+import com.seplag.api.dto.AlbumRequestDTO;
+import com.seplag.api.dto.AlbumUpdateDTO;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,40 +26,63 @@ public class AlbumService {
     private final MinioStorageService minioStorageService;
     private final AlbumRepository albumRepository;
     private final ArtistaRepository artistaRepository;
-
-
+    private final WebSocketNotificationController webSocketNotificationController;
 
     //Construtor
     public AlbumService(MinioStorageService minioStorage,
                         AlbumRepository albumRepository,
-                        ArtistaRepository artistaRepository)
+                        ArtistaRepository artistaRepository, WebSocketNotificationController webSocketNotificationController)
     {
         this.minioStorageService = minioStorage;
         this.albumRepository = albumRepository;
         this.artistaRepository = artistaRepository;
+        this.webSocketNotificationController = webSocketNotificationController;
     }
 
     @Transactional
     public Album createAlbumV1(AlbumRequestDTO data) {
-        String imgUrl = null;
+        if (data.nomealbum() == null || data.nomealbum().isBlank()) {
+            throw new IllegalArgumentException("O nome do álbum é obrigatório");
+        }
 
-        if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
-            imgUrl = this.uploadImg(data.imgUrl());
+        if (data.anoLancamento() == null || data.anoLancamento().isBlank()) {
+            throw new IllegalArgumentException("O ano de lançamento é obrigatório");
+        }
+
+        if (data.artistaIds() == null || data.artistaIds().isEmpty()) {
+            throw new IllegalArgumentException("Deve ter pelo menos um artista");
         }
 
         Set<Artista> artistas = new HashSet<>(artistaRepository.findAllById(data.artistaIds()));
+        if (artistas.size() != data.artistaIds().size()) {
+            throw new EntityNotFoundException("Alguns artistas não foram encontrados");
+        }
+
+        String imgUrl = null;
+        MultipartFile file = data.imgUrl();
+        if (file != null && !file.isEmpty()) {
+            imgUrl = this.uploadImg(file);
+        }
 
         Album newAlbum = new Album();
         newAlbum.setNomeAlbum(data.nomealbum());
         newAlbum.setAnoLancamento(data.anoLancamento());
         newAlbum.setImgUrl(imgUrl);
         newAlbum.setArtistas(artistas);
-        return albumRepository.save(newAlbum);
+
+        Album savedAlbum = albumRepository.save(newAlbum);
+
+        webSocketNotificationController.notifyNewAlbum(savedAlbum);
+
+        return savedAlbum;
     }
 
 
     @Transactional(readOnly = true)
-    public List<Album> getAllAlbumsV1(int page, int pageSize, String nomeArtista, Sort.Direction order) {
+    public List<Album> getAllAlbumsV1(int page,
+                                      int pageSize,
+                                      String nomeArtista,
+                                      Sort.Direction order) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(order, "nomeAlbum"));
         if (nomeArtista == null || nomeArtista.isBlank()) {
             return albumRepository.findAll(pageable).getContent();
@@ -130,7 +152,6 @@ public class AlbumService {
 
         return albumRepository.save(album);
     }
-
 
     private String uploadImg(MultipartFile multipartFile) {
 
