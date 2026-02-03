@@ -1,4 +1,4 @@
-package com.seplag.api.domain.artista;
+package com.seplag.api.dto;
 
 public record ArtistaRequestDTO(String nome,
                                 String nacionalidade,

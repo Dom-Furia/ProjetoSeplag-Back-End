@@ -1,4 +1,4 @@
-package com.seplag.api.domain.user;
+package com.seplag.api.dto;
 
 public record ResponseDTO(String name, String token) {
 }

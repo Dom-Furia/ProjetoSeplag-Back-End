@@ -1,4 +1,4 @@
-package com.seplag.api.domain.user;
+package com.seplag.api.dto;
 
 public record RegisterRequestDTO(String name, String email, String password){
 

@@ -1,6 +1,5 @@
-package com.seplag.api.domain.album;
+package com.seplag.api.dto;
 
-import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;

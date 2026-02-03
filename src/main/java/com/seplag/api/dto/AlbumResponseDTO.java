@@ -1,4 +1,4 @@
-package com.seplag.api.domain.album;
+package com.seplag.api.dto;
 
 import java.time.Instant;
 import java.util.UUID;
