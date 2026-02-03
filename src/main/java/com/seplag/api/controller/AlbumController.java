@@ -1,8 +1,8 @@
 package com.seplag.api.controller;
 
 import com.seplag.api.domain.album.Album;
-import com.seplag.api.domain.album.AlbumRequestDTO;
-import com.seplag.api.domain.album.AlbumUpdateDTO;
+import com.seplag.api.dto.AlbumRequestDTO;
+import com.seplag.api.dto.AlbumUpdateDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,9 +73,6 @@ public class AlbumController {
                 new AlbumRequestDTO(nomealbum, anoLancamento, imgUrl, artistaId);
 
         Album album = albumService.createAlbumV1(albumRequestDTO);
-
-        System.out.println("📢 Enviando álbum via WebSocket: " + album.getNomeAlbum());
-        webSocketNotificationController.notifyNewAlbum(album);
 
         return ResponseEntity.status(201).body(album);
     }

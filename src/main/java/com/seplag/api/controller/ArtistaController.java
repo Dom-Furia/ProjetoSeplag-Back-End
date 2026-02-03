@@ -3,7 +3,7 @@ package com.seplag.api.controller;
 
 
 import com.seplag.api.domain.artista.Artista;
-import com.seplag.api.domain.artista.ArtistaRequestDTO;
+import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.ArtistaService;
 import io.swagger.v3.oas.annotations.Operation;
