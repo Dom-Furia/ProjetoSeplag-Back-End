@@ -18,6 +18,6 @@ public class WebSocketNotificationController {
     public void notifyNewAlbum(Album album) {
         // Enviar a mensagem para o tópico "/topic/album" que os clientes vão assinar
         System.out.println("📢 Enviando álbum via WebSocket: " + album.getNomeAlbum());
-        messagingTemplate.convertAndSend("/topic/album", album);
+        messagingTemplate.convertAndSend("/topic/novo-album", album);
     }
 }
