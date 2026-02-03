@@ -2,38 +2,46 @@ package com.seplag.api.controller;
 
 import com.seplag.api.dto.*;
 import com.seplag.api.domain.user.*;
-import com.seplag.api.repositories.UserRepository;
-import com.seplag.api.security.TokenService;
-import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name = "Auth", description = "Endpoints responsáveis pelo Registro e Login de usuario")
 public class AuthController {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
-    private final RefreshTokenService refreshTokenService;
-    private final AuthenticationManager authenticationManager;
-    private  final UserService userService;
+
+    private final UserService userService;
 
 
+    //---------------------------------------Listar Usuário---------------------------//
+    @Operation(
+            summary = "Listar Usuários",
+            description = "Retorna usuarios"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    })
 
+    @GetMapping("/users")
+    public List<UserResponseDTO> listUsers() {
+        return ResponseEntity.ok(userService.listUsers()).getBody();
+    }
+
+
+    //-----------------------------Registrar Usuario---------------------//
     @Operation(
             summary = "Criar novo Usuario",
             description = "Cria um usuario informando nome, e-mail e senha"
@@ -45,11 +53,22 @@ public class AuthController {
     })
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@RequestBody UserRequestDTO body){
+    public ResponseEntity<UserResponseDTO> register(
+            @Parameter(description = "Nome", example = "João")
+            @RequestParam(required = false) String name,
 
-            return ResponseEntity.ok(userService.registerUser(body));
+            @Parameter(description = "E-mail", example = "joao@test.com")
+            @RequestParam(required = false) String email,
+
+            @Parameter(description = "Senha", example = "Test@2026")
+            @RequestParam(required = false) String password
+    ){
+            UserRequestDTO dto = new UserRequestDTO(name, email, password);
+            return ResponseEntity.ok(userService.registerUser(dto));
     }
 
+
+    //------------------------------Login Usuario-------------------------------------//
     @Operation(
             summary = "Login de Usuario",
             description = "Acesso do usuario no sistema informando e-mail e senha"
@@ -60,41 +79,68 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO body) {
 
-        var authenticationToken =
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                );
-
-        authenticationManager.authenticate(authenticationToken);
-        // 👆 se chegou aqui, login é válido
-
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        String accessToken = tokenService.generateToken(user);
-        String refreshToken = refreshTokenService.create(user);
-
-        return ResponseEntity.ok(
-                new AuthResponseDTO(
-                        user.getName(),
-                        accessToken,
-                        refreshToken
-                )
-        );
+        return ResponseEntity.ok(userService.login(body));
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refresh(@RequestBody RefreshRequestDTO request) {
-
-        User user = refreshTokenService.validate(request.refreshToken());
-
-        String newAccessToken = tokenService.generateToken(user);
-
-        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
+    //--------------------------Excluir Usuário---------------------//
+    @Operation(
+            summary = "Excluir Usuário",
+            description = "Remove um usuario pelo seu ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuário excluído"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Map<String, String>> deleteUser(
+            @Parameter(description = "ID do usuário", required = true)
+            @PathVariable UUID id
+        )
+    {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(Map.of("message", "Álbum excluído com sucesso."));
     }
+
+    //------------------------------------Atualizar Usuário---------------------//
+    @Operation(
+            summary = "Atualizar álbum",
+            description = "Atualiza os campos do álbum (nome, ano ou imagem)."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
+            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+    })
+    @PutMapping("/user/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @Parameter(description = "ID do álbum", required = true)
+            @PathVariable UUID id,
+
+            @Parameter(description = "Novo nome do usuário", example = "João")
+            @RequestParam(required = false) String name,
+
+            @Parameter(description = "Novo email do usuario", example = "joao@test.com")
+            @RequestParam(required = false) String email,
+
+            @Parameter(description = "Nova senha do usuario", example = "Test@2026")
+            @RequestParam(required = false) String password
+    ){
+        UserRequestDTO dto = new UserRequestDTO(name, email, password);
+
+        return ResponseEntity.ok(userService.updateUser(id, dto));
+    }
+
+
+//    @PostMapping("/refresh")
+//    public ResponseEntity<TokenResponseDTO> refresh(@RequestBody RefreshRequestDTO request) {
+//
+//        User user = refreshTokenService.validate(request.refreshToken());
+//
+//        String newAccessToken = tokenService.generateToken(user);
+//
+//        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
+//    }
 
 
 }

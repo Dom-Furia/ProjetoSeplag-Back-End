@@ -1,9 +1,11 @@
 package com.seplag.api.service;
 
 import com.seplag.api.domain.user.User;
-import com.seplag.api.dto.UserResponseDTO;
-import com.seplag.api.dto.UserRequestDTO;
+import com.seplag.api.dto.*;
 import com.seplag.api.repositories.UserRepository;
+import com.seplag.api.security.TokenService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -14,10 +16,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
+    private final AuthenticationManager authenticationManager;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService,  AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
+        this.authenticationManager = authenticationManager;
     }
 
     public UserResponseDTO registerUser(UserRequestDTO userDTO){
@@ -98,6 +104,29 @@ public class UserService {
         }
 
         userRepository.deleteById(id);
+    }
+
+    public LoginResponseDTO login(LoginRequestDTO logindto) {
+
+        var authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        logindto.email(),
+                        logindto.password()
+                );
+
+        authenticationManager.authenticate(authenticationToken);
+
+        User user = userRepository.findByEmail(logindto.email())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        String accessToken = tokenService.generateToken(user);
+        //String refreshToken = refreshTokenService.create(user);
+
+        return new LoginResponseDTO(
+                user.getName(),
+                accessToken,
+                "refreshToken"
+        );
     }
 
 
