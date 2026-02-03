@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Receber notificações de álbum via WebSocket</title>
+
+  <!-- SockJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <!-- STOMP -->
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #log { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Notificações de novos álbuns</h2>
+
+<div id="log"></div>
+
+<script>
+  const log = (msg) => {
+    const div = document.getElementById('log');
+    div.innerHTML += `<div>${msg}</div>`;
+    div.scrollTop = div.scrollHeight;
+  };
+
+  function connectWS() {
+    const socket = new SockJS("http://localhost:8080/ws");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, frame => {
+      log("✅ Conectado no WebSocket");
+
+      // Inscreve no tópico onde o backend envia a notificação
+      stompClient.subscribe("/topic/novo-album", message => {
+        try {
+          const album = JSON.parse(message.body);
+          log(`📢 Novo álbum recebido: ${album.nomeAlbum} (${album.anoLancamento})`);
+        } catch {
+          log("📢 Mensagem recebida (não JSON): " + message.body);
+        }
+      });
+    }, error => {
+      log("❌ Erro na conexão WebSocket: " + error);
+    });
+  }
+
+  connectWS();
+</script>
+
+</body>
+</html>
+
