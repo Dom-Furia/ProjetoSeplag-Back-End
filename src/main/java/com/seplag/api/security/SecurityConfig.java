@@ -1,6 +1,7 @@
 package com.seplag.api.security;
 
 
+import com.seplag.api.security.ratelimit.RateLimitFilter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
@@ -33,9 +34,9 @@ public class SecurityConfig {
         this.securityFilter = securityFilter;
     }
 
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   RateLimitFilter rateLimitFilter) throws Exception{
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -57,7 +58,8 @@ public class SecurityConfig {
                                 ).permitAll()
                                 .anyRequest().authenticated()
                         )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter,SecurityFilter.class);
         return http.build();
     }
 
