@@ -1,22 +1,24 @@
 package com.seplag.api.controller;
 
+import com.seplag.api.dto.*;
 import com.seplag.api.domain.user.*;
 import com.seplag.api.repositories.UserRepository;
 import com.seplag.api.security.TokenService;
+import com.seplag.api.security.RefreshTokenService;
+import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,6 +28,9 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
+    private final AuthenticationManager authenticationManager;
+    private  final UserService userService;
 
 
 
@@ -38,22 +43,11 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
+
     @PostMapping("/register")
-    public ResponseEntity<MessageResponseDTO> register(@RequestBody RegisterRequestDTO body){
+    public ResponseEntity<UserResponseDTO> register(@RequestBody UserRequestDTO body){
 
-        Optional<User> user = this.userRepository.findByEmail(body.email());
-
-        if (user.isEmpty()){
-            User newUser = new User();
-            newUser.setName(body.name());
-            newUser.setEmail(body.email());
-            newUser.setPassword(passwordEncoder.encode(body.password()));
-            this.userRepository.save(newUser);
-
-            return ResponseEntity.ok(new MessageResponseDTO("Usúario Cadastrado com sucesso"));
-        }
-
-        return ResponseEntity.badRequest().build();
+            return ResponseEntity.ok(userService.registerUser(body));
     }
 
     @Operation(
@@ -66,24 +60,41 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDTO body) {
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
 
-        User user = userRepository.findByEmail(body.email())
-                .orElse(null);
+        var authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                );
 
-        if (user == null) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new MessageResponseDTO("Usuário não encontrado"));
-        }
+        authenticationManager.authenticate(authenticationToken);
+        // 👆 se chegou aqui, login é válido
 
-        if (!passwordEncoder.matches(body.password(), user.getPassword())) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new MessageResponseDTO("Email ou senha inválidos"));
-        }
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        String token = tokenService.generateToken(user);
-        return ResponseEntity.ok(new ResponseDTO(user.getName(), token));
+        String accessToken = tokenService.generateToken(user);
+        String refreshToken = refreshTokenService.create(user);
+
+        return ResponseEntity.ok(
+                new AuthResponseDTO(
+                        user.getName(),
+                        accessToken,
+                        refreshToken
+                )
+        );
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponseDTO> refresh(@RequestBody RefreshRequestDTO request) {
+
+        User user = refreshTokenService.validate(request.refreshToken());
+
+        String newAccessToken = tokenService.generateToken(user);
+
+        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
+    }
+
+
 }
