@@ -1,6 +1,6 @@
 package com.seplag.api.dto;
 
-public record AuthResponseDTO(
+public record LoginResponseDTO(
         String nome,
         String accessToken,
         String refreshToken
