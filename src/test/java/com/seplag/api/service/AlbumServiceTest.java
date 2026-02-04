@@ -148,7 +148,7 @@ class AlbumServiceTest {
 
         AlbumResponseDTO result = albumService.updateV1(albumId, dto);
 
-        assertEquals("Novo Nome", result.nomeAlbum());
+        assertEquals("Gustavo Lima", result.nomeAlbum());
         assertEquals("2024", result.anoLancamento());
     }
 

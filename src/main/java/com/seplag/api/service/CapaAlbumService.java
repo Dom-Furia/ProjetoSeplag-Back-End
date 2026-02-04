@@ -16,12 +16,17 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class CapaAlbumService {
 
     private final AlbumRepository albumRepository;
     private final CapaAlbumRepository capaAlbumRepository;
     private final MinioStorageService minioService;
+
+    public CapaAlbumService(AlbumRepository albumRepository, CapaAlbumRepository capaAlbumRepository, MinioStorageService minioService) {
+        this.albumRepository = albumRepository;
+        this.capaAlbumRepository = capaAlbumRepository;
+        this.minioService = minioService;
+    }
 
     /* --------------------------CRIAR --------------------- */
     @Transactional

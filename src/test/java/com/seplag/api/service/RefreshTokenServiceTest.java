@@ -48,7 +48,6 @@ class RefreshTokenServiceTest {
 
         ArgumentCaptor<RefreshToken> captor =
                 ArgumentCaptor.forClass(RefreshToken.class);
-
         service.create(user);
 
         verify(repository).save(captor.capture());

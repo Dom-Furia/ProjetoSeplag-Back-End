@@ -23,8 +23,7 @@ CREATE TABLE album (
                        nome_album VARCHAR(255) NOT NULL,
                        ano_lancamento VARCHAR(4),
                        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       atualizado_em TIMESTAMP,
-
+                       atualizado_em TIMESTAMP
 
 );
 
@@ -39,7 +38,7 @@ CREATE TABLE capa_album (
                             object_name VARCHAR(500) NOT NULL,
                             album_id UUID NOT NULL,
                             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            atualizado_em TIMESTAMP,
+                            atualizado_em TIMESTAMP
 
 );
 

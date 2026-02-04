@@ -6,6 +6,8 @@ import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +26,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final UserService userService;
-    private RefreshTokenService refreshToken;
+    private final RefreshTokenService refreshToken;
 
 
     //---------------------------------------Listar Usuário---------------------------//
@@ -55,17 +56,17 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(
-            @Parameter(description = "Nome", example = "João")
-            @RequestParam(required = false) String name,
-
-            @Parameter(description = "E-mail", example = "joao@test.com")
-            @RequestParam(required = false) String email,
-
-            @Parameter(description = "Senha", example = "Test@2026")
-            @RequestParam(required = false) String password
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Dados para registro de usuário",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = UserRequestDTO.class)
+                    )
+            )
+            @RequestBody UserRequestDTO userDTO
     ){
-            UserRequestDTO dto = new UserRequestDTO(name, email, password);
-            return ResponseEntity.ok(userService.registerUser(dto));
+
+            return ResponseEntity.ok(userService.registerUser(userDTO));
     }
 
 
@@ -148,9 +149,10 @@ public class AuthController {
             @RequestBody String token
     ) {
 
-        refreshToken.validate(token);
+       User user =  refreshToken.validate(token);
 
-        return ResponseEntity.ok(new TokenResponseDTO(refreshToken.validate(token)));
+
+        return ResponseEntity.ok(new TokenResponseDTO(refreshToken.create(user)));
     }
 
 
