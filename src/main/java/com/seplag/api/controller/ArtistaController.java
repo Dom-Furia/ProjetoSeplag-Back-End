@@ -31,14 +31,33 @@ public class ArtistaController {
     }
 
 
-    //------------------ Listar Artistas-------------------//
+    //----------------------------- Listar Artistas ----------------------/
+    @Operation(
+            summary = "Listar artistas",
+            description = "Retorna artistas com paginação,ordenação e filtro por tipo e nome de artista"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+    })
     @GetMapping
     public ResponseEntity<Page<ArtistaResponseDTO>> listarArtistas(
+
+            @Parameter(description = "Número da página", example = "0")
             @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "Quantidade de registros por página", example = "10")
             @RequestParam(defaultValue = "10") int pageSize,
+
+            @Parameter(description = "Filtrar pelo nome do artista", example = "Elton John")
             @RequestParam(required = false) String nome,
+
+            @Parameter(description = "Filtrar pelo tipo do artista", example = "Banda")
             @RequestParam(required = false) String tipo,
+
+            @Parameter(description = "Filtrar pelo nacionalidade do artista", example = "Banda")
             @RequestParam(required = false) String nacionalidade,
+
+            @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "ASC")
             @RequestParam(defaultValue = "ASC") Sort.Direction order
     ) {
         return ResponseEntity.ok(
@@ -65,20 +84,19 @@ public class ArtistaController {
     })
     @PostMapping
     public ResponseEntity<ArtistaResponseDTO> createArtistaV1(
-            @Parameter(description = "Novo nome do artista", example = "Elton John")
+            @Parameter(description = "Nome", example = "Elton John")
             @RequestParam(required = false) String nome,
 
-            @Parameter(description = "Novo nacionalidade", example = "Americano")
+            @Parameter(description = "Nacionalidade", example = "Americano")
             @RequestParam(required = false) String nacionalidade,
 
-            @Parameter(description = "Novo tipo", example = "CANTOR")
+            @Parameter(description = "Tipo", example = "CANTOR")
             @RequestParam(required = false) String tipo
     ) {
         ArtistaRequestDTO dto = new ArtistaRequestDTO(nome, nacionalidade, tipo);
 
         return ResponseEntity.ok(artistaService.createArtistaV1(dto));
     }
-
 
     //----------------- Atualizar Artista PATCH --------------------------------//
     @Operation(

@@ -2,6 +2,7 @@ package com.seplag.api.controller;
 
 import com.seplag.api.dto.*;
 import com.seplag.api.domain.user.*;
+import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final UserService userService;
+    private RefreshTokenService refreshToken;
 
 
     //---------------------------------------Listar Usuário---------------------------//
@@ -39,7 +41,6 @@ public class AuthController {
     public List<UserResponseDTO> listUsers() {
         return ResponseEntity.ok(userService.listUsers()).getBody();
     }
-
 
     //-----------------------------Registrar Usuario---------------------//
     @Operation(
@@ -79,8 +80,9 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO body) {
-
+    public ResponseEntity<LoginResponseDTO> login(
+            @RequestBody LoginRequestDTO body
+    ) {
         return ResponseEntity.ok(userService.login(body));
     }
 
@@ -131,16 +133,25 @@ public class AuthController {
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
 
+    //---------------------------- Token Refresh ------------------------------------//
+    @Operation(
+            summary = "Token de Renovação",
+            description = "Token de renovação da conexão"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Token gerado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Token Invalido ou Expirado")
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponseDTO> refresh(
+            @Parameter(description = "Token", example = "8Z7U7SxaiEI87eIHZ2LzRgz8fjy41I7rtsBObZasfFk7Aroa7soLAMXGGyo3pZet")
+            @RequestBody String token
+    ) {
 
-//    @PostMapping("/refresh")
-//    public ResponseEntity<TokenResponseDTO> refresh(@RequestBody RefreshRequestDTO request) {
-//
-//        User user = refreshTokenService.validate(request.refreshToken());
-//
-//        String newAccessToken = tokenService.generateToken(user);
-//
-//        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
-//    }
+        refreshToken.validate(token);
+
+        return ResponseEntity.ok(new TokenResponseDTO(refreshToken.validate(token)));
+    }
 
 
 }

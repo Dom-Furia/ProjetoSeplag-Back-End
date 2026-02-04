@@ -19,8 +19,22 @@ public class RefreshTokenService {
         this.repository = repository;
     }
 
+    public String validate(String token) {
+
+        RefreshToken refresh = repository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+
+        if (refresh.getExpiracao().isBefore(Instant.now())) {
+            throw new RuntimeException("Refresh token expirado");
+        }
+
+        create(refresh.getUser());
+
+        return create(refresh.getUser());
+    }
+
     @Transactional
-    public String create(User user) {
+    private String create(User user) {
 
         repository.deleteByUser(user); // garante 1 refresh token por usuário
 
@@ -33,18 +47,6 @@ public class RefreshTokenService {
 
         repository.save(refresh);
         return refresh.getToken();
-    }
-
-    public User validate(String token) {
-
-        RefreshToken refresh = repository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
-
-        if (refresh.getExpiracao().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token expirado");
-        }
-
-        return refresh.getUser();
     }
 }
 

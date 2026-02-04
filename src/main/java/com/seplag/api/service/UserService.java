@@ -26,6 +26,7 @@ public class UserService {
         this.authenticationManager = authenticationManager;
     }
 
+    /* --------------------------CRIAR --------------------- */
     public UserResponseDTO registerUser(UserRequestDTO userDTO){
 
         if (userDTO.name() == null || userDTO.name().isBlank() ) {
@@ -59,6 +60,7 @@ public class UserService {
         );
 
     }
+
 
     public List<UserResponseDTO> listUsers() {
         return userRepository.findAll()

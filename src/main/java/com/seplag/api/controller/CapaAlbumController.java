@@ -26,7 +26,7 @@ public class CapaAlbumController {
     }
 
     /* CREATE */
-    @PostMapping
+    @PostMapping(value = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<CapaAlbumResponseDTO> upload(
             @PathVariable UUID albumId,
             @RequestParam MultipartFile file
@@ -55,8 +55,8 @@ public class CapaAlbumController {
         );
     }
 
-    @GetMapping("/generatelink")
-    public ResponseEntity<String> download(@PathVariable UUID capaId) {
+    @GetMapping("/download/{capaId}")
+    public ResponseEntity<String> getDownloadLink(@PathVariable UUID capaId) {
 
         String arquivo = capaAlbumService.download(capaId);
 

@@ -39,6 +39,8 @@ public class AlbumService {
         this.webSocketNotificationController = webSocketNotificationController;
     }
 
+
+    //---------------------------- Criar Album ------------------------//
     @Transactional
     public AlbumResponseDTO createAlbumV1(AlbumRequestDTO dto) {
 
@@ -72,6 +74,7 @@ public class AlbumService {
         return toResponseDTO(savedAlbum);
     }
 
+    //---------------------------- Adicionar Artistas ao Album ------------------------//
     @Transactional
     public AlbumResponseDTO adicionarArtistas(
             UUID albumId,
@@ -89,7 +92,7 @@ public class AlbumService {
         return toResponseDTO(album);
     }
 
-
+    //---------------------------- Listar Albuns ------------------------//
     @Transactional
     public List<AlbumResponseDTO> getAllAlbunsV1(
             int page, int pageSize,
@@ -122,6 +125,7 @@ public class AlbumService {
                 .toList();
     }
 
+    //---------------------------- Excluir Album ------------------------//
     @Transactional
     public void  deleteByIdV1(UUID id) {
         if (!albumRepository.existsById(id)) {
@@ -130,6 +134,7 @@ public class AlbumService {
         albumRepository.deleteById(id);
     }
 
+    //---------------------------- Atualizar Album Parcial ------------------------//
     @Transactional
     public AlbumResponseDTO updatePartialV1(UUID id, AlbumRequestDTO dto) {
 
@@ -147,6 +152,7 @@ public class AlbumService {
         return toResponseDTO(albumRepository.save(album)) ;
     }
 
+    //---------------------------- Atualizar Album ------------------------//
     @Transactional
     public AlbumResponseDTO updateV1(UUID id, AlbumRequestDTO dto) {
 
@@ -161,6 +167,7 @@ public class AlbumService {
     }
 
 
+    // Converter um Album em AlbumResponseDTO com artistas
     private AlbumResponseDTO toResponseDTO(Album album) {
         return new AlbumResponseDTO(
                 album.getId(),

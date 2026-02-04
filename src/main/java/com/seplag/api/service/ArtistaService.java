@@ -50,6 +50,7 @@ public class ArtistaService {
                 newArtista.getTipo().toString());
     }
 
+    //---------------------------- Listar Artistas ------------------------//
     @Transactional(readOnly = true)
     public Page<ArtistaResponseDTO> listarArtistasV1(
             int page,
@@ -95,6 +96,7 @@ public class ArtistaService {
         artistaRepository.deleteById(id);
     }
 
+    //---------------------------- Atualizar Album Parcial ------------------------//
     @Transactional
     public ArtistaResponseDTO updatePartialV1(UUID id, ArtistaRequestDTO dto) {
 
@@ -124,6 +126,7 @@ public class ArtistaService {
     }
 
 
+    //---------------------------- Atualizar Artista ------------------------//
     @Transactional
     public ArtistaResponseDTO updateV1(UUID id, ArtistaRequestDTO dto) {
 
@@ -143,6 +146,7 @@ public class ArtistaService {
         );
     }
 
+    // Converter um Artista em ArtistaResponseDTO
     private ArtistaResponseDTO toResponseDTO(Artista artista) {
         return new ArtistaResponseDTO(
                 artista.getId(),

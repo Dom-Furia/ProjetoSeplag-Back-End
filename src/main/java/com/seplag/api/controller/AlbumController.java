@@ -7,8 +7,6 @@ import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.*;
 
@@ -71,7 +69,7 @@ public class AlbumController {
     //---------------------------------------Listar Albuns-------------------------------//
     @Operation(
             summary = "Listar álbuns",
-            description = "Retorna álbuns com paginação, filtro por artista  e ordenação."
+            description = "Retorna álbuns com paginação,ordenação e filtro por tipo e nome de artista "
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -152,7 +150,6 @@ public class AlbumController {
 
             @Parameter(description = "Novo artista", example = "Gustavo Lima")
             @RequestParam(required = false) UUID artista
-
 
     ) {
 

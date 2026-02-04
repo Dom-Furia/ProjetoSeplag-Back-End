@@ -23,6 +23,7 @@ public class CapaAlbumService {
     private final CapaAlbumRepository capaAlbumRepository;
     private final MinioStorageService minioService;
 
+    /* --------------------------CRIAR --------------------- */
     @Transactional
     public CapaAlbumResponseDTO criar(UUID albumId, MultipartFile file) {
 
@@ -42,6 +43,7 @@ public class CapaAlbumService {
         return toDTO(capa);
     }
 
+    /* -------------------------- LISTAR --------------------- */
     @Transactional
     public List<CapaAlbumResponseDTO> listarPorAlbum(UUID albumId) {
 
@@ -51,6 +53,7 @@ public class CapaAlbumService {
                 .toList();
     }
 
+    /* --------------------------BUSCAR POR ID --------------------- */
     @Transactional
     public CapaAlbumResponseDTO buscarPorId(UUID capaId) {
 
@@ -68,7 +71,7 @@ public class CapaAlbumService {
         return minioService.generateUrl(capa.getObjectName());
     }
 
-    /* ===================== UPDATE ===================== */
+    /* --------------------------UPDATE --------------------- */
 
     @Transactional
     public CapaAlbumResponseDTO atualizar(UUID capaId, MultipartFile novaImagem) {
@@ -88,7 +91,7 @@ public class CapaAlbumService {
         return toDTO(capa);
     }
 
-    /* ===================== DELETE ===================== */
+    /* -------------------------- DELETE -------------------------- */
 
     @Transactional
     public void deletar(UUID capaId) {
