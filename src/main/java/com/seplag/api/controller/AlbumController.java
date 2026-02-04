@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,28 +41,10 @@ public class AlbumController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping
     public ResponseEntity<AlbumResponseDTO> createAlbumV1(
-
-            @Parameter(description = "Nome do álbum", example = "Hybrid Theory", required = true)
-            @RequestParam("nomealbum") String nomealbum,
-
-            @Parameter(description = "Ano de lançamento", example = "2000", required = true)
-            @RequestParam("anoLancamento") String anoLancamento,
-
-            @Parameter(
-                    description = "IDs dos artistas vinculados ao álbum",
-                    example = "[\"550e8400-e29b-41d4-a716-446655440000\"]",
-                    required = true
-            )
-            @RequestParam("artista_id") Set<UUID> artistaId
+            @Valid @RequestBody AlbumRequestDTO albumRequestDTO
     ) {
-
-        AlbumRequestDTO albumRequestDTO = new AlbumRequestDTO(
-                nomealbum,
-                anoLancamento,
-                artistaId
-        );
 
         return ResponseEntity.status(201).body(albumService.createAlbumV1(albumRequestDTO));
     }
@@ -136,28 +119,16 @@ public class AlbumController {
             @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
             @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
     })
-    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PatchMapping("/{id}")
     public ResponseEntity<AlbumResponseDTO> updatePartialAlbumV1(
 
             @Parameter(description = "ID do álbum", required = true)
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do álbum", example = "Meteora")
-            @RequestParam(required = false) String nomeAlbum,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) String anoLancamento,
-
-            @Parameter(description = "Novo artista", example = "Gustavo Lima")
-            @RequestParam(required = false) UUID artista
+            @RequestBody AlbumRequestDTO dto
 
     ) {
 
-        AlbumRequestDTO dto = new AlbumRequestDTO(
-                nomeAlbum,
-                anoLancamento,
-                Set.of(artista)
-        );
 
         return ResponseEntity.ok(albumService.updatePartialV1(id, dto));
     }
@@ -177,22 +148,9 @@ public class AlbumController {
             @Parameter(description = "ID do álbum", required = true)
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do álbum", example = "Meteora")
-            @RequestParam(required = false) String nomeAlbum,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) String anoLancamento,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) UUID artista
+            @RequestBody AlbumRequestDTO dto
 
     ) {
-
-        AlbumRequestDTO dto = new AlbumRequestDTO(
-                nomeAlbum,
-                anoLancamento,
-                Set.of(artista)
-        );
 
         return ResponseEntity.ok(albumService.updateV1(id, dto));
     }
