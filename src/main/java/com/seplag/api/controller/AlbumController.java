@@ -1,8 +1,8 @@
 package com.seplag.api.controller;
 
-import com.seplag.api.domain.album.Album;
+
 import com.seplag.api.dto.AlbumRequestDTO;
-import com.seplag.api.dto.AlbumUpdateDTO;
+import com.seplag.api.dto.AlbumResponseDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,19 +18,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/album")
 @Tag(name = "Álbuns V1", description = "Endpoints responsáveis pelo cadastro, consulta, atualização e exclusão de álbuns (Versão 1)")
 @SecurityRequirement(name = SecurityConfig.SECURITY)
 public class AlbumController {
+
     private final AlbumService albumService;
 
-    public AlbumController(AlbumService albumService, WebSocketNotificationController webSocketNotificationController) {
+    public AlbumController(AlbumService albumService) {
         this.albumService = albumService;
     }
 
@@ -45,19 +43,13 @@ public class AlbumController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Album> createAlbumV1(
+    public ResponseEntity<AlbumResponseDTO> createAlbumV1(
 
             @Parameter(description = "Nome do álbum", example = "Hybrid Theory", required = true)
             @RequestParam("nomealbum") String nomealbum,
 
             @Parameter(description = "Ano de lançamento", example = "2000", required = true)
             @RequestParam("anoLancamento") String anoLancamento,
-
-            @Parameter(
-                    description = "Imagem da capa do álbum",
-                    content = @Content(schema = @Schema(type = "string", format = "binary"))
-            )
-            @RequestParam(value = "imgUrl", required = false) MultipartFile imgUrl,
 
             @Parameter(
                     description = "IDs dos artistas vinculados ao álbum",
@@ -67,12 +59,13 @@ public class AlbumController {
             @RequestParam("artista_id") Set<UUID> artistaId
     ) {
 
-        AlbumRequestDTO albumRequestDTO =
-                new AlbumRequestDTO(nomealbum, anoLancamento, imgUrl, artistaId);
+        AlbumRequestDTO albumRequestDTO = new AlbumRequestDTO(
+                nomealbum,
+                anoLancamento,
+                artistaId
+        );
 
-        Album album = albumService.createAlbumV1(albumRequestDTO);
-
-        return ResponseEntity.status(201).body(album);
+        return ResponseEntity.status(201).body(albumService.createAlbumV1(albumRequestDTO));
     }
 
     //---------------------------------------Listar Albuns-------------------------------//
@@ -84,7 +77,7 @@ public class AlbumController {
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     })
     @GetMapping
-    public ResponseEntity<List<Album>> getAlbumsV1(
+    public ResponseEntity<List<AlbumResponseDTO>> getAlbumsV1(
 
             @Parameter(description = "Número da página", example = "0")
             @RequestParam(defaultValue = "0") int page,
@@ -95,13 +88,22 @@ public class AlbumController {
             @Parameter(description = "Filtrar pelo nome do artista", example = "Linkin Park")
             @RequestParam(required = false) String nomeArtista,
 
+            @Parameter(description = "Filtrar pelo tipo do artista", example = "Banda")
+            @RequestParam(required = false) String tipo,
+
             @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "ASC")
             @RequestParam(defaultValue = "ASC") Sort.Direction order
     ) {
 
-        List<Album> albums = albumService.getAllAlbumsV1(page, pageSize, nomeArtista, order);
+      List<AlbumResponseDTO> albuns =  albumService.getAllAlbunsV1(
+                page,
+                pageSize,
+                nomeArtista,
+                tipo,
+                order
+        );
 
-        return ResponseEntity.ok(albums);
+        return ResponseEntity.ok(albuns);
     }
 
     //--------------------------------------Excluir Album------------------------------------//
@@ -137,7 +139,7 @@ public class AlbumController {
             @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
     })
     @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<Album> updatePartialAlbumV1(
+    public ResponseEntity<AlbumResponseDTO> updatePartialAlbumV1(
 
             @Parameter(description = "ID do álbum", required = true)
             @PathVariable UUID id,
@@ -148,19 +150,19 @@ public class AlbumController {
             @Parameter(description = "Novo ano de lançamento", example = "2003")
             @RequestParam(required = false) String anoLancamento,
 
-            @Parameter(
-                    description = "Nova imagem da capa",
-                    content = @Content(schema = @Schema(type = "string", format = "binary"))
-            )
-            @RequestParam(required = false) MultipartFile imgUrl
+            @Parameter(description = "Novo artista", example = "Gustavo Lima")
+            @RequestParam(required = false) UUID artista
+
+
     ) {
 
-        AlbumUpdateDTO dto =
-                new AlbumUpdateDTO(nomeAlbum, anoLancamento, imgUrl);
+        AlbumRequestDTO dto = new AlbumRequestDTO(
+                nomeAlbum,
+                anoLancamento,
+                Set.of(artista)
+        );
 
-        Album album = albumService.updatePartialV1(id, dto);
-
-        return ResponseEntity.ok(album);
+        return ResponseEntity.ok(albumService.updatePartialV1(id, dto));
     }
 
     //----------------------------------------Atualizar Album PUT-----------------------------------//
@@ -173,7 +175,7 @@ public class AlbumController {
             @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
     })
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<Album> updateAlbumV1(
+    public ResponseEntity<AlbumResponseDTO> updateAlbumV1(
 
             @Parameter(description = "ID do álbum", required = true)
             @PathVariable UUID id,
@@ -184,16 +186,17 @@ public class AlbumController {
             @Parameter(description = "Novo ano de lançamento", example = "2003")
             @RequestParam(required = false) String anoLancamento,
 
-            @Parameter(
-                    description = "Nova imagem da capa",
-                    content = @Content(schema = @Schema(type = "string", format = "binary"))
-            )
-            @RequestParam(required = false) MultipartFile imgUrl
+            @Parameter(description = "Novo ano de lançamento", example = "2003")
+            @RequestParam(required = false) UUID artista
+
     ) {
 
-        AlbumUpdateDTO dto = new AlbumUpdateDTO(nomeAlbum, anoLancamento, imgUrl);
-        Album album = albumService.updateV1(id, dto);
+        AlbumRequestDTO dto = new AlbumRequestDTO(
+                nomeAlbum,
+                anoLancamento,
+                Set.of(artista)
+        );
 
-        return ResponseEntity.ok(album);
+        return ResponseEntity.ok(albumService.updateV1(id, dto));
     }
 }
