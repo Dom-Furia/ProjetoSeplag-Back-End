@@ -7,28 +7,32 @@ import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.ArtistaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/artista")
+@RequiredArgsConstructor
 @Tag(name = "Artista", description = "Endpoints responsáveis pelo cadastro, consulta, atualização e exclusão de artistas (Versão 1)")
 @SecurityRequirement(name = SecurityConfig.SECURITY)
 public class ArtistaController {
 
     private final ArtistaService artistaService;
 
-    public ArtistaController(ArtistaService artistaService) {
-        this.artistaService = artistaService;
-    }
 
 
     //----------------------------- Listar Artistas ----------------------/
@@ -40,7 +44,7 @@ public class ArtistaController {
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
     })
     @GetMapping
-    public ResponseEntity<Page<ArtistaResponseDTO>> listarArtistas(
+    public ResponseEntity<List<ArtistaResponseDTO>> listarArtistas(
 
             @Parameter(description = "Número da página", example = "0")
             @RequestParam(defaultValue = "0") int page,
@@ -60,16 +64,16 @@ public class ArtistaController {
             @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "ASC")
             @RequestParam(defaultValue = "ASC") Sort.Direction order
     ) {
-        return ResponseEntity.ok(
-                artistaService.listarArtistasV1(
-                        page,
-                        pageSize,
-                        nome,
-                        tipo,
-                        nacionalidade,
-                        order
-                )
+        Page<ArtistaResponseDTO> artitas = artistaService.listarArtistasV1(
+
+                page,
+                pageSize,
+                nome,
+                tipo,
+                nacionalidade,
+                order
         );
+        return ResponseEntity.ok(artitas.getContent());
     }
 
     //----------------------------- Criar Artista ----------------------/
@@ -84,16 +88,15 @@ public class ArtistaController {
     })
     @PostMapping
     public ResponseEntity<ArtistaResponseDTO> createArtistaV1(
-            @Parameter(description = "Nome", example = "Elton John")
-            @RequestParam(required = false) String nome,
-
-            @Parameter(description = "Nacionalidade", example = "Americano")
-            @RequestParam(required = false) String nacionalidade,
-
-            @Parameter(description = "Tipo", example = "CANTOR")
-            @RequestParam(required = false) String tipo
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ArtistaRequestDTO.class)
+                    )
+            )
+            @Valid @RequestBody ArtistaRequestDTO dto
     ) {
-        ArtistaRequestDTO dto = new ArtistaRequestDTO(nome, nacionalidade, tipo);
 
         return ResponseEntity.ok(artistaService.createArtistaV1(dto));
     }
@@ -107,23 +110,20 @@ public class ArtistaController {
             @ApiResponse(responseCode = "200", description = "Artista atualizado"),
             @ApiResponse(responseCode = "404", description = "Artista não encontrado")
     })
-    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PatchMapping("/{id}")
     public ResponseEntity<ArtistaResponseDTO> updatePartialArtistaV1(
-
             @Parameter(description = "ID do artista", required = true)
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do artista", example = "Elton John")
-            @RequestParam(required = false) String nome,
-
-            @Parameter(description = "Novo nacionalidade", example = "Americano")
-            @RequestParam(required = false) String nacionalidade,
-
-            @Parameter(description = "Novo tipo", example = "CANTOR")
-            @RequestParam(required = false) String tipo
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ArtistaRequestDTO.class)
+                    )
+            )
+            @Valid @RequestBody ArtistaRequestDTO dto
     ) {
-
-        ArtistaRequestDTO dto = new ArtistaRequestDTO(nome, nacionalidade, tipo);
 
         return ResponseEntity.ok(artistaService.updatePartialV1(id, dto));
     }
@@ -137,28 +137,22 @@ public class ArtistaController {
             @ApiResponse(responseCode = "200", description = "Artista atualizado"),
             @ApiResponse(responseCode = "404", description = "Artista não encontrado")
     })
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PutMapping("/{id}")
     public ResponseEntity<ArtistaResponseDTO> updateArtistaV1(
 
             @Parameter(description = "ID do artista", required = true)
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do artista", example = "Elton John")
-            @RequestParam(required = false) String nome,
-
-            @Parameter(description = "Novo nacionalidade", example = "Americano")
-            @RequestParam(required = false) String nacionalidade,
-
-            @Parameter(description = "Novo tipo", example = "CANTOR")
-            @RequestParam(required = false) String tipo
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ArtistaRequestDTO.class)
+                    )
+            )
+            @Valid @RequestBody ArtistaRequestDTO dto
 
     ) {
-
-        ArtistaRequestDTO dto = new ArtistaRequestDTO(
-                nome,
-                nacionalidade,
-                tipo
-        );
 
         return ResponseEntity.ok(artistaService.updateV1(id, dto));
     }

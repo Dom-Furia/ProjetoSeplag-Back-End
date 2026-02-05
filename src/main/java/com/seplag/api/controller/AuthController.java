@@ -3,13 +3,17 @@ package com.seplag.api.controller;
 import com.seplag.api.dto.*;
 import com.seplag.api.domain.user.*;
 import com.seplag.api.security.RefreshTokenService;
+import com.seplag.api.security.TokenService;
 import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +29,8 @@ import java.util.UUID;
 public class AuthController {
 
     private final UserService userService;
-    private RefreshTokenService refreshToken;
+    private final RefreshTokenService refreshToken;
+    private final TokenService tokenService;
 
 
     //---------------------------------------Listar Usuário---------------------------//
@@ -55,16 +60,15 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(
-            @Parameter(description = "Nome", example = "João")
-            @RequestParam(required = false) String name,
-
-            @Parameter(description = "E-mail", example = "joao@test.com")
-            @RequestParam(required = false) String email,
-
-            @Parameter(description = "Senha", example = "Test@2026")
-            @RequestParam(required = false) String password
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserRequestDTO.class)
+                    )
+            )
+            @RequestBody UserRequestDTO dto
     ){
-            UserRequestDTO dto = new UserRequestDTO(name, email, password);
             return ResponseEntity.ok(userService.registerUser(dto));
     }
 
@@ -81,9 +85,16 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(
-            @RequestBody LoginRequestDTO body
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginRequestDTO.class)
+                    )
+            )
+            @RequestBody LoginRequestDTO dto
     ) {
-        return ResponseEntity.ok(userService.login(body));
+        return ResponseEntity.ok(userService.login(dto));
     }
 
     //--------------------------Excluir Usuário---------------------//
@@ -119,16 +130,15 @@ public class AuthController {
             @Parameter(description = "ID do álbum", required = true)
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do usuário", example = "João")
-            @RequestParam(required = false) String name,
-
-            @Parameter(description = "Novo email do usuario", example = "joao@test.com")
-            @RequestParam(required = false) String email,
-
-            @Parameter(description = "Nova senha do usuario", example = "Test@2026")
-            @RequestParam(required = false) String password
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserRequestDTO.class)
+                    )
+            )
+            @RequestBody UserRequestDTO dto
     ){
-        UserRequestDTO dto = new UserRequestDTO(name, email, password);
 
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
@@ -145,12 +155,14 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponseDTO> refresh(
             @Parameter(description = "Token", example = "8Z7U7SxaiEI87eIHZ2LzRgz8fjy41I7rtsBObZasfFk7Aroa7soLAMXGGyo3pZet")
-            @RequestBody String token
+            @RequestBody RefreshTokenRequestDTO refreshtoken
     ) {
 
-        refreshToken.validate(token);
 
-        return ResponseEntity.ok(new TokenResponseDTO(refreshToken.validate(token)));
+        User user = refreshToken.validate(refreshtoken.refreshtoken());
+        String newAccessToken = tokenService.generateToken(user);
+
+        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
     }
 
 

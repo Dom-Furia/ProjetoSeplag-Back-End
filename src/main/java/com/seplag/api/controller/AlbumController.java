@@ -3,14 +3,18 @@ package com.seplag.api.controller;
 
 import com.seplag.api.dto.AlbumRequestDTO;
 import com.seplag.api.dto.AlbumResponseDTO;
+import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,15 +24,13 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/album")
+@RequiredArgsConstructor
 @Tag(name = "Álbuns V1", description = "Endpoints responsáveis pelo cadastro, consulta, atualização e exclusão de álbuns (Versão 1)")
 @SecurityRequirement(name = SecurityConfig.SECURITY)
 public class AlbumController {
 
     private final AlbumService albumService;
 
-    public AlbumController(AlbumService albumService) {
-        this.albumService = albumService;
-    }
 
     //-------------------------------Criar Album----------------------------------//
     @Operation(
@@ -127,7 +129,7 @@ public class AlbumController {
         );
     }
 
-    //----------------------------------------Atualizar Album PATCH-----------------------------------//
+    //----------------------------------------Atualizar Album Parcial -----------------------------------//
     @Operation(
             summary = "Atualizar parcialmente álbum",
             description = "Atualiza um ou mais campos do álbum (nome, ano ou imagem)."
@@ -162,7 +164,7 @@ public class AlbumController {
         return ResponseEntity.ok(albumService.updatePartialV1(id, dto));
     }
 
-    //----------------------------------------Atualizar Album PUT-----------------------------------//
+    //----------------------------------------Atualizar Album -----------------------------------//
     @Operation(
             summary = "Atualizar álbum",
             description = "Atualiza os campos do álbum (nome, ano ou imagem)."
@@ -196,4 +198,40 @@ public class AlbumController {
 
         return ResponseEntity.ok(albumService.updateV1(id, dto));
     }
+
+    //----------------------------- Adicionar Artistas ao Album
+    @Operation(
+            summary = "Atualizar álbum",
+            description = "Atualiza os campos do álbum (nome, ano ou imagem)."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
+            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+    })
+    @PostMapping("/adicionar/artistas/{albumId}")
+    public ResponseEntity<AlbumResponseDTO> adicionarArtistas(
+
+            @Parameter(description = "ID do álbum", required = true)
+            @PathVariable UUID albumId,
+
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AlbumRequestDTO.class)
+                    )
+            )
+
+            @RequestBody Set<UUID> artistasIds
+    ) {
+        AlbumResponseDTO response =
+                albumService.adicionarArtistas(albumId, artistasIds);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
 }
