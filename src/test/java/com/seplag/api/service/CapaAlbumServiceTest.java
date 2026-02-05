@@ -6,16 +6,19 @@ import com.seplag.api.dto.CapaAlbumResponseDTO;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.CapaAlbumRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("CapaAlbumService - Testes Unitários")
 class CapaAlbumServiceTest {
 
     @Mock
@@ -63,6 +67,7 @@ class CapaAlbumServiceTest {
     /* -------------------- CRIAR -------------------- */
 
     @Test
+    @DisplayName("Deve criar capa com sucesso")
     void deveCriarCapaComSucesso() {
         when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -78,6 +83,7 @@ class CapaAlbumServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao criar capa com álbum inexistente")
     void deveLancarErroAoCriarCapaComAlbumInexistente() {
         when(albumRepository.findById(albumId)).thenReturn(Optional.empty());
 
@@ -87,6 +93,7 @@ class CapaAlbumServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao criar capa com arquivo inválido")
     void deveLancarErroAoCriarCapaComArquivoInvalido() {
         when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
         when(multipartFile.isEmpty()).thenReturn(true);
@@ -99,6 +106,7 @@ class CapaAlbumServiceTest {
     /* -------------------- LISTAR -------------------- */
 
     @Test
+    @DisplayName("Deve listar capas por álbum")
     void deveListarCapasPorAlbum() {
         when(capaAlbumRepository.findByAlbumId(albumId))
                 .thenReturn(List.of(capa));
@@ -112,6 +120,7 @@ class CapaAlbumServiceTest {
     /* -------------------- BUSCAR POR ID -------------------- */
 
     @Test
+    @DisplayName("Deve buscar capa por ID")
     void deveBuscarCapaPorId() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.of(capa));
 
@@ -122,6 +131,7 @@ class CapaAlbumServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao buscar capa inexistente")
     void deveLancarErroAoBuscarCapaInexistente() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.empty());
 
@@ -133,6 +143,7 @@ class CapaAlbumServiceTest {
     /* -------------------- DOWNLOAD -------------------- */
 
     @Test
+    @DisplayName("Deve gerar URL para download da capa")
     void deveGerarUrlParaDownload() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.of(capa));
         when(minioService.generateUrl("imagem-antiga.jpg"))
@@ -146,6 +157,7 @@ class CapaAlbumServiceTest {
     /* -------------------- UPDATE -------------------- */
 
     @Test
+    @DisplayName("Deve atualizar capa com sucesso")
     void deveAtualizarCapaComSucesso() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.of(capa));
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -163,6 +175,7 @@ class CapaAlbumServiceTest {
     /* -------------------- DELETE -------------------- */
 
     @Test
+    @DisplayName("Deve deletar capa com sucesso")
     void deveDeletarCapaComSucesso() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.of(capa));
 
@@ -173,6 +186,7 @@ class CapaAlbumServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao deletar capa inexistente")
     void deveLancarErroAoDeletarCapaInexistente() {
         when(capaAlbumRepository.findById(capaId)).thenReturn(Optional.empty());
 
@@ -180,5 +194,4 @@ class CapaAlbumServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Capa não encontrada");
     }
-
 }

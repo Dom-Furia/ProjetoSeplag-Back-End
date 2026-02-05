@@ -1,30 +1,28 @@
 package com.seplag.api.service;
 
-
 import com.seplag.api.domain.artista.Artista;
-import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.domain.artista.TipoArtista;
+import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.dto.ArtistaResponseDTO;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@Slf4j
 @ExtendWith(MockitoExtension.class)
+@DisplayName("ArtistaService - Testes Unitários")
 class ArtistaServiceTest {
 
     @Mock
@@ -33,12 +31,15 @@ class ArtistaServiceTest {
     @InjectMocks
     private ArtistaService artistaService;
 
+    // ================= CREATE =================
+
     @Test
-    @DisplayName("Deve criar um artista corretamente")
+    @DisplayName("Deve criar um artista com sucesso")
     void deveCriarArtista() {
 
         UUID artistaId = UUID.randomUUID();
-        ArtistaRequestDTO dto = new ArtistaRequestDTO("Nome Teste", "Brasileiro", "BANDA");
+        ArtistaRequestDTO dto =
+                new ArtistaRequestDTO("Nome Teste", "Brasileiro", "BANDA");
 
         when(artistaRepository.save(any(Artista.class)))
                 .thenAnswer(invocation -> {
@@ -47,10 +48,8 @@ class ArtistaServiceTest {
                     return artista;
                 });
 
-        // Executa o método
         ArtistaResponseDTO criado = artistaService.createArtistaV1(dto);
 
-        // Verificações
         assertThat(criado).isNotNull();
         assertThat(criado.id()).isEqualTo(artistaId);
         assertThat(criado.nome()).isEqualTo("Nome Teste");
@@ -59,113 +58,121 @@ class ArtistaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve verificar se existe e excluir corretamente")
-    public void deveExcluirArtistaQuandoExistir() {
-        UUID albumId = UUID.randomUUID();
-
-        when(artistaRepository.existsById(albumId)).thenReturn(true);
-
-        artistaService.deleteByIdV1(albumId);
-
-        verify(artistaRepository).deleteById(albumId);
-    }
-
-    @Test
-    @DisplayName("Deve atualizar somente os campos informados")
-    public void deveAtualizarApenasCamposInformados() {
-        UUID artistaId = UUID.randomUUID();
-
-        Artista artista = new Artista();
-        artista.setId(artistaId);
-        artista.setNome("Gustavo Lima");
-        artista.setNacionalidade("2020");
-        artista.setTipo(TipoArtista.CANTOR);
+    @DisplayName("Deve lançar exceção ao criar artista com campos inválidos")
+    void deveLancarExcecaoCampoNulo() {
 
         ArtistaRequestDTO dto =
-                new ArtistaRequestDTO("Jorge e Matheus", "Brasileiro", TipoArtista.CANTOR.toString());
+                new ArtistaRequestDTO("", "2020", TipoArtista.CANTOR.toString());
 
-        when(artistaRepository.findById(artistaId))
-                .thenReturn(Optional.of(artista));
+        assertThrows(IllegalArgumentException.class,
+                () -> artistaService.createArtistaV1(dto));
+    }
 
-        when(artistaRepository.save(any(Artista.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+    // ================= DELETE =================
 
-        ArtistaResponseDTO result = artistaService.updatePartialV1(artistaId, dto);
+    @Test
+    @DisplayName("Deve excluir artista quando existir")
+    void deveExcluirArtistaQuandoExistir() {
+        UUID artistaId = UUID.randomUUID();
 
-        assertEquals("Jorge e Matheus", result.nome());
-        assertEquals("Brasileiro", result.nacionalidade());
+        when(artistaRepository.existsById(artistaId))
+                .thenReturn(true);
+
+        artistaService.deleteByIdV1(artistaId);
+
+        verify(artistaRepository).deleteById(artistaId);
     }
 
     @Test
-    @DisplayName("Deve atualizar todos os campos informados")
-    public void deveAtualizarTodosOsCampos() {
+    @DisplayName("Deve lançar exceção ao excluir artista inexistente")
+    void deveLancarExcecaoQuandoArtistaNaoExistir() {
         UUID artistaId = UUID.randomUUID();
 
-        Artista artista = new Artista();
-        artista.setId(artistaId);
-
-        ArtistaRequestDTO dto =
-                new ArtistaRequestDTO("Gustavo Lima",
-                        "Brasileiro",
-                        TipoArtista.CANTOR.toString());
-
-        when(artistaRepository.findById(artistaId))
-                .thenReturn(Optional.of(artista));
-
-        when(artistaRepository.save(any(Artista.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        ArtistaResponseDTO result = artistaService.updateV1(artistaId, dto);
-
-        assertEquals("Gustavo Lima", result.nome());
-        assertEquals(artistaId, result.id());
-        assertEquals("Brasileiro", result.nacionalidade());
-    }
-
-    //-------------------------------Teste De Exceções-------------------------------//
-
-    @Test
-    @DisplayName("Quando tentar deletar um artista pelo ID")
-    public void deveLancarExcecaoQuandoArtistaNaoExistir() {
-        UUID artistaId = UUID.randomUUID();
-
-        when(artistaRepository.existsById(artistaId)).thenReturn(false);
+        when(artistaRepository.existsById(artistaId))
+                .thenReturn(false);
 
         assertThrows(EntityNotFoundException.class,
                 () -> artistaService.deleteByIdV1(artistaId));
     }
 
+    // ================= UPDATE PARCIAL =================
+
     @Test
-    @DisplayName("Quando tentar Atualizar um artista que não existe")
-    public void deveLancarExcecaoQuandoTentarAtualizarArtistaInexistente() {
-        UUID albumId = UUID.randomUUID();
+    @DisplayName("Deve atualizar apenas os campos informados")
+    void deveAtualizarApenasCamposInformados() {
+        UUID artistaId = UUID.randomUUID();
+
+        Artista artista = new Artista();
+        artista.setId(artistaId);
+        artista.setNome("Gustavo Lima");
+        artista.setNacionalidade("Antiga");
+        artista.setTipo(TipoArtista.CANTOR);
 
         ArtistaRequestDTO dto =
                 new ArtistaRequestDTO(
-                        "Atualizado",
-                        null,
-                        null);
+                        "Jorge e Mateus",
+                        "Brasileiro",
+                        TipoArtista.CANTOR.toString()
+                );
 
+        when(artistaRepository.findById(artistaId))
+                .thenReturn(Optional.of(artista));
 
-        when(artistaRepository.findById(albumId)).thenReturn(Optional.empty());
+        when(artistaRepository.save(any(Artista.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(RuntimeException.class,
-                () -> artistaService.updatePartialV1(albumId,dto));
+        ArtistaResponseDTO result =
+                artistaService.updatePartialV1(artistaId, dto);
+
+        assertEquals("Jorge e Mateus", result.nome());
+        assertEquals("Brasileiro", result.nacionalidade());
+        assertEquals(TipoArtista.CANTOR.toString(), result.tipo());
     }
 
     @Test
-    @DisplayName("Deve lança Exeção quando não preencher todos os campos")
-    public void deveLancarExcecaoCampoNulo() {
+    @DisplayName("Deve lançar exceção ao atualizar artista inexistente (parcial)")
+    void deveLancarExcecaoAoAtualizarArtistaInexistente() {
+        UUID artistaId = UUID.randomUUID();
 
-        ArtistaRequestDTO dto = new ArtistaRequestDTO(
-                "",
-                "2020",
-                TipoArtista.CANTOR.toString()
+        ArtistaRequestDTO dto =
+                new ArtistaRequestDTO("Atualizado", null, null);
 
-        );
-        assertThrows(IllegalArgumentException.class,
-                () -> artistaService.createArtistaV1(dto));
+        when(artistaRepository.findById(artistaId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class,
+                () -> artistaService.updatePartialV1(artistaId, dto));
     }
 
+    // ================= UPDATE COMPLETO =================
 
+    @Test
+    @DisplayName("Deve atualizar todos os campos do artista")
+    void deveAtualizarTodosOsCampos() {
+        UUID artistaId = UUID.randomUUID();
+
+        Artista artista = new Artista();
+        artista.setId(artistaId);
+
+        ArtistaRequestDTO dto =
+                new ArtistaRequestDTO(
+                        "Gustavo Lima",
+                        "Brasileiro",
+                        TipoArtista.CANTOR.toString()
+                );
+
+        when(artistaRepository.findById(artistaId))
+                .thenReturn(Optional.of(artista));
+
+        when(artistaRepository.save(any(Artista.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ArtistaResponseDTO result =
+                artistaService.updateV1(artistaId, dto);
+
+        assertEquals("Gustavo Lima", result.nome());
+        assertEquals("Brasileiro", result.nacionalidade());
+        assertEquals(TipoArtista.CANTOR.toString(), result.tipo());
+        assertEquals(artistaId, result.id());
+    }
 }

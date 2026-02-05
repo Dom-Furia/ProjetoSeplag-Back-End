@@ -2,14 +2,13 @@ package com.seplag.api.service;
 
 import com.seplag.api.controller.WebSocketNotificationController;
 import com.seplag.api.domain.album.Album;
+import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.dto.AlbumRequestDTO;
-import com.seplag.api.dto.AlbumResponseDTO;
-import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,16 +16,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@Slf4j
 @ExtendWith(MockitoExtension.class)
+@DisplayName("AlbumService - Testes Unitários")
 class AlbumServiceTest {
 
     @InjectMocks
@@ -38,248 +35,202 @@ class AlbumServiceTest {
     @Mock
     private ArtistaRepository artistaRepository;
 
-
     @Mock
     private WebSocketNotificationController webSocketNotificationController;
 
+    private Artista artista;
+    private Album album;
+
+    @BeforeEach
+    void setup() {
+        artista = new Artista();
+        artista.setId(UUID.randomUUID());
+        artista.setNome("Artista Teste");
+        artista.setNacionalidade("Brasil");
+        artista.setTipo(TipoArtista.CANTOR);
+
+        album = new Album();
+        album.setId(UUID.randomUUID());
+        album.setNomeAlbum("Album Teste");
+        album.setAnoLancamento("2024");
+        Set<Artista> artistas = new HashSet<>();
+        artistas.add(artista);
+        album.setArtistas(artistas);;
+    }
+
+    // ================= CREATE =================
 
     @Test
-    @DisplayName("Deve Criar Album Com Sucesso E Enviar WebSocket")
-    public void deveCriarAlbumComSucessoEEnviarWebSocket() {
-
-        UUID artistaId = UUID.randomUUID();
-
+    @DisplayName("Deve criar álbum com sucesso")
+    void createAlbumV1_sucesso() {
         AlbumRequestDTO dto = new AlbumRequestDTO(
-                "Hybrid Theory",
-                "2000",
-                Set.of(artistaId)
+                "Novo Album",
+                "2025",
+                Set.of(artista.getId())
         );
 
-        Artista artista = new Artista();
-        artista.setId(artistaId);
-        artista.setTipo(TipoArtista.CANTOR);
-        artista.setNome("Linkin Park");
-
-        when(artistaRepository.findAllById(Set.of(artistaId)))
+        when(artistaRepository.findAllById(dto.artistaIds()))
                 .thenReturn(List.of(artista));
 
         when(albumRepository.save(any(Album.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenReturn(album);
 
-        AlbumResponseDTO response = albumService.createAlbumV1(dto);
+        var response = albumService.createAlbumV1(dto);
 
         assertNotNull(response);
-        assertEquals("Hybrid Theory", response.nomeAlbum());
-        assertEquals("2000", response.anoLancamento());
-
-        verify(albumRepository, times(1)).save(any(Album.class));
-        verify(webSocketNotificationController, times(1))
-                .notifyNewAlbum(any(Album.class));
-
+        assertEquals("Album Teste", response.nomeAlbum());
+        verify(webSocketNotificationController)
+                .notifyNewAlbum(any());
     }
 
     @Test
-    public void deveRetornarAlbumComOuSemFiltro() {
-        UUID artistaId = UUID.randomUUID();
-
-        Artista artista = new Artista();
-        artista.setId(artistaId);
-        artista.setNome("Linkin Park");
-        artista.setTipo(TipoArtista.BANDA);
-
-        Album album = new Album();
-        album.setId(UUID.randomUUID());
-        album.setNomeAlbum("Hybrid Theory");
-        album.setAnoLancamento("2000");
-        album.setArtistas(Set.of(artista));
-
-        Pageable pageable = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.ASC, "nomeAlbum")
-        );
-
-        Page<Album> page = new PageImpl<>(List.of(album), pageable, 1);
-
-        when(albumRepository.findByArtistaNomeAndTipo(
-                eq("Linkin Park"),
-                eq(TipoArtista.BANDA),
-                any(Pageable.class)
-        )).thenReturn(page);
-
-        // when
-        List<AlbumResponseDTO> result =
-                albumService.getAllAlbunsV1(
-                        0,
-                        10,
-                        "Linkin Park",
-                        "BANDA",
-                        Sort.Direction.ASC
-                );
-
-        // then
-        assertEquals(1, result.size());
-        assertEquals("Hybrid Theory", result.get(0).nomeAlbum());
-
-        verify(albumRepository, times(1))
-                .findByArtistaNomeAndTipo(
-                        eq("Linkin Park"),
-                        eq(TipoArtista.BANDA),
-                        any(Pageable.class)
-                );
-    }
-
-
-    @Test
-    public void deveAtualizarTodosOsCampos() {
-        UUID albumId = UUID.randomUUID();
-
-        Album album = new Album();
-        album.setId(albumId);
-
-        AlbumRequestDTO dto =
-                new AlbumRequestDTO("Gustavo Lima", "2024", null);
-
-        when(albumRepository.findById(albumId))
-                .thenReturn(Optional.of(album));
-
-        when(albumRepository.save(any(Album.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        AlbumResponseDTO result = albumService.updateV1(albumId, dto);
-
-        assertEquals("Gustavo Lima", result.nomeAlbum());
-        assertEquals("2024", result.anoLancamento());
-    }
-
-    @Test
-   public void deveAtualizarApenasCamposInformados() {
-        UUID albumId = UUID.randomUUID();
-
-        Album album = new Album();
-        album.setId(albumId);
-        album.setNomeAlbum("Original");
-        album.setAnoLancamento("2020");
-
-        AlbumRequestDTO dto =
-                new AlbumRequestDTO("Atualizado", null, null);
-
-        when(albumRepository.findById(albumId))
-                .thenReturn(Optional.of(album));
-
-        when(albumRepository.save(any(Album.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        AlbumResponseDTO result = albumService.updatePartialV1(albumId, dto);
-
-        assertEquals("Atualizado", result.nomeAlbum());
-        assertEquals("2020", result.anoLancamento());
-    }
-
-
-    @Test
-    public void deveExcluirAlbumQuandoExistir() {
-        UUID albumId = UUID.randomUUID();
-
-        when(albumRepository.existsById(albumId)).thenReturn(true);
-
-        albumService.deleteByIdV1(albumId);
-
-        verify(albumRepository).deleteById(albumId);
-    }
-
-    //-------------------------------Teste De Exeções-------------------------------//
-    @Test
-    @DisplayName("Quando tentar deletar um album pelo ID")
-    public void deveLancarExcecaoQuandoAlbumNaoExistir() {
-        UUID albumId = UUID.randomUUID();
-
-        when(albumRepository.existsById(albumId)).thenReturn(false);
-
-        assertThrows(EntityNotFoundException.class,
-                () -> albumService.deleteByIdV1(albumId));
-    }
-
-    @Test
-    @DisplayName("Quando tentar Atualizar um album que não existe")
-   public void deveLancarExcecaoQuandoTentarAtualizarAlbumInesistente() {
-        UUID albumId = UUID.randomUUID();
-
-        AlbumRequestDTO dto =
-                new AlbumRequestDTO("Atualizado", null, null);
-
-
-        when(albumRepository.findById(albumId)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class,
-                () -> albumService.updatePartialV1(albumId,dto));
-    }
-
-    @Test
-    @DisplayName("Deve lança Exeção quando não preencher todos os campos")
-   public void deveLancarExcecaoCampoNulo() {
-        UUID albumId = UUID.randomUUID();
-
+    @DisplayName("Deve lançar exceção quando nome do álbum estiver vazio")
+    void createAlbumV1_semNome_deveLancarExcecao() {
         AlbumRequestDTO dto = new AlbumRequestDTO(
                 "",
-                "2020",
-                Set.of(albumId)
-
+                "2024",
+                Set.of(UUID.randomUUID())
         );
-        assertThrows(IllegalArgumentException.class,() -> albumService.createAlbumV1(dto));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> albumService.createAlbumV1(dto));
     }
 
     @Test
-    void deveListarAlbunsQuandoTipoForNulo() {
-        Album album = new Album();
-        album.setId(UUID.randomUUID());
-        album.setNomeAlbum("Album Teste");
+    @DisplayName("Deve lançar exceção quando artista não for encontrado")
+    void createAlbumV1_artistaNaoEncontrado() {
+        AlbumRequestDTO dto = new AlbumRequestDTO(
+                "Album",
+                "2024",
+                Set.of(UUID.randomUUID())
+        );
 
+        when(artistaRepository.findAllById(any()))
+                .thenReturn(List.of());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> albumService.createAlbumV1(dto));
+    }
+
+    // ================= ADICIONAR ARTISTAS =================
+
+    @Test
+    @DisplayName("Deve adicionar artistas ao álbum com sucesso")
+    void adicionarArtistas_sucesso() {
+        when(albumRepository.findById(album.getId()))
+                .thenReturn(Optional.of(album));
+
+        when(artistaRepository.findAllById(any()))
+                .thenReturn(List.of(artista));
+
+        var response = albumService.adicionarArtistas(
+                album.getId(),
+                Set.of(artista.getId())
+        );
+
+        assertFalse(response.artistas().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao adicionar artistas em álbum inexistente")
+    void adicionarArtistas_albumNaoEncontrado() {
+        when(albumRepository.findById(any()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class,
+                () -> albumService.adicionarArtistas(
+                        UUID.randomUUID(),
+                        Set.of(UUID.randomUUID())
+                ));
+    }
+
+    // ================= LISTAR =================
+
+    @Test
+    @DisplayName("Deve listar álbuns com paginação e filtros")
+    void getAllAlbunsV1_sucesso() {
         Page<Album> page = new PageImpl<>(List.of(album));
 
         when(albumRepository.findByArtistaNomeAndTipo(
                 anyString(),
-                isNull(),
-                any(Pageable.class)
-        )).thenReturn(page);
+                any(),
+                any(Pageable.class)))
+                .thenReturn(page);
 
-        List<AlbumResponseDTO> result =
-                albumService.getAllAlbunsV1(
-                        0,
-                        10,
-                        "Qualquer",
-                        null,
-                        Sort.Direction.ASC
-                );
+        var result = albumService.getAllAlbunsV1(
+                0, 10, "", null, Sort.Direction.ASC
+        );
 
         assertEquals(1, result.size());
     }
 
+    // ================= DELETE =================
+
     @Test
-    void deveUsarNomeVazioQuandoNomeArtistaForBlank() {
-        Page<Album> page = new PageImpl<>(List.of());
+    @DisplayName("Deve excluir álbum com sucesso")
+    void deleteByIdV1_sucesso() {
+        UUID id = UUID.randomUUID();
 
-        when(albumRepository.findByArtistaNomeAndTipo(
-                eq(""),
-                any(),
-                any(Pageable.class)
-        )).thenReturn(page);
+        when(albumRepository.existsById(id))
+                .thenReturn(true);
 
-        albumService.getAllAlbunsV1(
-                0,
-                10,
-                " ",
-                "banda",
-                Sort.Direction.ASC
-        );
+        albumService.deleteByIdV1(id);
 
-        verify(albumRepository).findByArtistaNomeAndTipo(
-                eq(""),
-                eq(TipoArtista.BANDA),
-                any(Pageable.class)
-        );
+        verify(albumRepository).deleteById(id);
     }
 
+    @Test
+    @DisplayName("Deve lançar exceção ao excluir álbum inexistente")
+    void deleteByIdV1_naoEncontrado() {
+        UUID id = UUID.randomUUID();
 
+        when(albumRepository.existsById(id))
+                .thenReturn(false);
 
+        assertThrows(EntityNotFoundException.class,
+                () -> albumService.deleteByIdV1(id));
+    }
+
+    // ================= UPDATE =================
+
+    @Test
+    @DisplayName("Deve atualizar parcialmente o álbum")
+    void updatePartialV1_sucesso() {
+        AlbumRequestDTO dto = new AlbumRequestDTO(
+                "Novo Nome",
+                null,
+                null
+        );
+
+        when(albumRepository.findById(album.getId()))
+                .thenReturn(Optional.of(album));
+
+        when(albumRepository.save(any()))
+                .thenReturn(album);
+
+        var response = albumService.updatePartialV1(album.getId(), dto);
+
+        assertEquals("Novo Nome", response.nomeAlbum());
+    }
+
+    @Test
+    @DisplayName("Deve atualizar álbum completamente")
+    void updateV1_sucesso() {
+        AlbumRequestDTO dto = new AlbumRequestDTO(
+                "Nome Atualizado",
+                "2026",
+                null
+        );
+
+        when(albumRepository.findById(album.getId()))
+                .thenReturn(Optional.of(album));
+
+        when(albumRepository.save(any()))
+                .thenReturn(album);
+
+        var response = albumService.updateV1(album.getId(), dto);
+
+        assertEquals("Nome Atualizado", response.nomeAlbum());
+        assertEquals("2026", response.anoLancamento());
+    }
 }

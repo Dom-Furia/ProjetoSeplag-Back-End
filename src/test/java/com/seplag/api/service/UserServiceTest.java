@@ -9,6 +9,7 @@ import com.seplag.api.repositories.UserRepository;
 import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.security.TokenService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,12 +24,12 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Testes do UserService")
 class UserServiceTest {
 
     @Mock
@@ -65,6 +66,7 @@ class UserServiceTest {
     /* ---------------- REGISTER ---------------- */
 
     @Test
+    @DisplayName("Deve registrar usuário com sucesso")
     void deveRegistrarUsuarioComSucesso() {
         UserRequestDTO dto = new UserRequestDTO(
                 "Julio",
@@ -86,6 +88,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro quando email já estiver cadastrado")
     void deveLancarErroQuandoEmailJaCadastrado() {
         UserRequestDTO dto = new UserRequestDTO(
                 "Julio",
@@ -103,18 +106,20 @@ class UserServiceTest {
     /* ---------------- LIST ---------------- */
 
     @Test
+    @DisplayName("Deve listar usuários")
     void deveListarUsuarios() {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
         List<UserResponseDTO> users = userService.listUsers();
 
         assertThat(users).hasSize(1);
-        assertThat(users.get(0).email()).isEqualTo(user.getEmail());
+        assertThat(users.getFirst().email()).isEqualTo(user.getEmail());
     }
 
     /* ---------------- UPDATE ---------------- */
 
     @Test
+    @DisplayName("Deve atualizar usuário com sucesso")
     void deveAtualizarUsuarioComSucesso() {
         UserRequestDTO dto = new UserRequestDTO(
                 "Novo Nome",
@@ -133,6 +138,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao atualizar usuário inexistente")
     void deveLancarErroAoAtualizarUsuarioInexistente() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -144,6 +150,7 @@ class UserServiceTest {
     /* ---------------- DELETE ---------------- */
 
     @Test
+    @DisplayName("Deve deletar usuário com sucesso")
     void deveDeletarUsuarioComSucesso() {
         when(userRepository.existsById(userId)).thenReturn(true);
 
@@ -153,6 +160,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro ao deletar usuário inexistente")
     void deveLancarErroAoDeletarUsuarioInexistente() {
         when(userRepository.existsById(userId)).thenReturn(false);
 
@@ -164,6 +172,7 @@ class UserServiceTest {
     /* ---------------- LOGIN ---------------- */
 
     @Test
+    @DisplayName("Deve realizar login com sucesso")
     void deveRealizarLoginComSucesso() {
         LoginRequestDTO loginDTO = new LoginRequestDTO(
                 "julio@email.com",
@@ -183,6 +192,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar erro quando usuário não existir no login")
     void deveLancarErroQuandoUsuarioNaoExisteNoLogin() {
         LoginRequestDTO loginDTO = new LoginRequestDTO(
                 "naoexiste@email.com",
@@ -195,6 +205,4 @@ class UserServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Usuário não encontrado");
     }
-
-
 }
