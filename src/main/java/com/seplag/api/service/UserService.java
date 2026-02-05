@@ -2,7 +2,6 @@ package com.seplag.api.service;
 
 import com.seplag.api.domain.user.User;
 import com.seplag.api.dto.*;
-import com.seplag.api.repositories.RefreshTokenRepository;
 import com.seplag.api.repositories.UserRepository;
 import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.security.TokenService;
@@ -14,35 +13,27 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
-    private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final AuthenticationManager authenticationManager;
 
-    public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       TokenService tokenService,
-                       AuthenticationManager authenticationManager,
-                       RefreshTokenService refreshTokenService
-    ) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService, RefreshTokenService refreshTokenService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
-        this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
-
+        this.authenticationManager = authenticationManager;
     }
 
     /* --------------------------CRIAR --------------------- */
     public UserResponseDTO registerUser(UserRequestDTO userDTO){
 
         if (userDTO.name() == null || userDTO.name().isBlank() ) {
-
             throw new IllegalArgumentException("O nome do usuario é obrigatório");
         }
 

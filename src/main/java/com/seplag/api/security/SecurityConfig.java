@@ -54,6 +54,7 @@ public class SecurityConfig {
                                         "/swagger-ui.html",
                                         "/ws/**",
                                         "/ws/info/**",
+                                        "/auth/refresh",
                                         "/topic/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
@@ -68,7 +69,10 @@ public class SecurityConfig {
         return request -> {
             CorsConfiguration config = new CorsConfiguration();
             config.setAllowedOrigins(
-                    List.of("http://localhost:3000", "http://localhost:5173")
+                    List.of("http://localhost:3000",
+                            "http://localhost:5173",
+                            "http://localhost:63342"
+                    )
             );
             config.setAllowedMethods(
                     List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")

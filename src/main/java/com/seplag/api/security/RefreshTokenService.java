@@ -16,6 +16,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository repository;
 
     public RefreshTokenService(RefreshTokenRepository repository) {
+
         this.repository = repository;
     }
 
@@ -23,6 +24,7 @@ public class RefreshTokenService {
 
         RefreshToken refresh = repository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+
 
         if (refresh.getExpiracao().isBefore(Instant.now())) {
             throw new RuntimeException("Refresh token expirado");

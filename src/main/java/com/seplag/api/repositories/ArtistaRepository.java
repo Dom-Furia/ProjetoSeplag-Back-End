@@ -16,15 +16,19 @@ import java.util.UUID;
 public interface ArtistaRepository extends JpaRepository<Artista, UUID> {
 
     @Query("""
-        SELECT a FROM Artista a
-        WHERE (:nome IS NULL OR LOWER(a.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
-          AND (:tipo IS NULL OR a.tipo = :tipo)
-          AND (:nacionalidade IS NULL OR LOWER(a.nacionalidade) LIKE LOWER(CONCAT('%', :nacionalidade, '%')))
-    """)
+    SELECT a FROM Artista a
+    WHERE a.nome ILIKE CONCAT('%', COALESCE(:nome, ''), '%')
+      AND (:tipo IS NULL OR a.tipo = :tipo)
+      AND a.nacionalidade ILIKE CONCAT('%', COALESCE(:nacionalidade, ''), '%')
+""")
     Page<Artista> filtrar(
             @Param("nome") String nome,
             @Param("tipo") TipoArtista tipo,
             @Param("nacionalidade") String nacionalidade,
             Pageable pageable
     );
+
+
+
+
 }

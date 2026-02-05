@@ -25,6 +25,7 @@ CREATE TABLE album (
                        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        atualizado_em TIMESTAMP
 
+
 );
 
 CREATE INDEX idx_album_nome ON album(nome_album);

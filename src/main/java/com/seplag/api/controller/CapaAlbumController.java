@@ -5,6 +5,7 @@ import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.CapaAlbumService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,29 +16,27 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/capa")
+@RequiredArgsConstructor
 @Tag(name = "Capa do Album V1", description = "Endpoints responsáveis pelo cadastro, consulta, atualização e exclusão da capa dos albuns (Versão 1)")
 @SecurityRequirement(name = SecurityConfig.SECURITY)
 public class CapaAlbumController {
 
     private final CapaAlbumService capaAlbumService;
 
-    public CapaAlbumController(CapaAlbumService capaAlbumService) {
-        this.capaAlbumService = capaAlbumService;
-    }
 
     /* CREATE */
-    @PostMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PostMapping(value = "/{albumid}", consumes = "multipart/form-data")
     public ResponseEntity<CapaAlbumResponseDTO> upload(
-            @PathVariable UUID albumId,
+            @PathVariable UUID albumid,
             @RequestParam MultipartFile file
     ) {
         return ResponseEntity.ok(
-                capaAlbumService.criar(albumId, file)
+                capaAlbumService.criar(albumid, file)
         );
     }
 
     /* READ */
-    @GetMapping("/listar")
+    @GetMapping("/listar/{albumId}")
     public ResponseEntity<List<CapaAlbumResponseDTO>> listar(
             @PathVariable UUID albumId
     ) {
@@ -58,28 +57,26 @@ public class CapaAlbumController {
     @GetMapping("/download/{capaId}")
     public ResponseEntity<String> getDownloadLink(@PathVariable UUID capaId) {
 
-        String arquivo = capaAlbumService.download(capaId);
+        String link = capaAlbumService.download(capaId);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(arquivo);
+        return ResponseEntity.ok(link);
     }
 
     /* UPDATE */
-    @PutMapping("/{capaId}")
+    @PutMapping("/{id}")
     public ResponseEntity<CapaAlbumResponseDTO> atualizar(
-            @PathVariable UUID capaId,
+            @PathVariable UUID id,
             @RequestParam MultipartFile file
     ) {
         return ResponseEntity.ok(
-                capaAlbumService.atualizar(capaId, file)
+                capaAlbumService.atualizar(id, file)
         );
     }
 
     /* DELETE */
-    @DeleteMapping("/{capaId}")
-    public ResponseEntity<Void> deletar(@PathVariable UUID capaId) {
-        capaAlbumService.deletar(capaId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
+        capaAlbumService.deletar(id);
         return ResponseEntity.noContent().build();
     }
 }
