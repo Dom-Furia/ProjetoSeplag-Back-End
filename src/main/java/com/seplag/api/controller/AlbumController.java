@@ -3,7 +3,6 @@ package com.seplag.api.controller;
 
 import com.seplag.api.dto.AlbumRequestDTO;
 import com.seplag.api.dto.AlbumResponseDTO;
-import com.seplag.api.dto.ArtistaRequestDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,63 +36,71 @@ public class AlbumController {
     //-------------------------------Criar Album----------------------------------//
     @Operation(
             summary = "Criar novo álbum",
-            description = "Cria um álbum informando nome, ano de lançamento, artistas vinculados e imagem."
+            description = "Cria um álbum informando nome, ano de lançamento e artistas vinculados.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AlbumRequestDTO.class)
+                    )
+            )
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Álbum criado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Artista não encontrado"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AlbumResponseDTO> createAlbumV1(
-
-            @Parameter(description = "Nome do álbum", example = "Hybrid Theory", required = true)
-            @RequestParam("nomealbum") String nomealbum,
-
-            @Parameter(description = "Ano de lançamento", example = "2000", required = true)
-            @RequestParam("anoLancamento") String anoLancamento,
-
-            @Parameter(
-                    description = "IDs dos artistas vinculados ao álbum",
-                    example = "[\"550e8400-e29b-41d4-a716-446655440000\"]",
-                    required = true
-            )
-            @RequestParam("artista_id") Set<UUID> artistaId
+            @Valid @RequestBody AlbumRequestDTO album
     ) {
 
-        AlbumRequestDTO albumRequestDTO = new AlbumRequestDTO(
-                nomealbum,
-                anoLancamento,
-                artistaId
-        );
-
-        return ResponseEntity.status(201).body(albumService.createAlbumV1(albumRequestDTO));
+        return ResponseEntity.status(201).body(albumService.createAlbumV1(album));
     }
 
     //---------------------------------------Listar Albuns-------------------------------//
     @Operation(
             summary = "Listar álbuns",
-            description = "Retorna álbuns com paginação,ordenação e filtro por tipo e nome de artista "
+            description = "Retorna álbuns com paginação, ordenação e filtros por nome e tipo do artista."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+            @ApiResponse(responseCode = "200", description = "Lista de álbuns retornada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetros de consulta inválidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @GetMapping
     public ResponseEntity<List<AlbumResponseDTO>> getAlbumsV1(
 
-            @Parameter(description = "Número da página", example = "0")
+            @Parameter(
+                    description = "Número da página (inicia em 0)",
+                    example = "0"
+            )
             @RequestParam(defaultValue = "0") int page,
 
-            @Parameter(description = "Quantidade de registros por página", example = "10")
+            @Parameter(
+                    description = "Quantidade de registros por página",
+                    example = "10"
+            )
             @RequestParam(defaultValue = "10") int pageSize,
 
-            @Parameter(description = "Filtrar pelo nome do artista", example = "Linkin Park")
+            @Parameter(
+                    description = "Filtrar pelo nome do artista",
+                    example = "Linkin Park"
+            )
             @RequestParam(required = false) String nomeArtista,
 
-            @Parameter(description = "Filtrar pelo tipo do artista", example = "Banda")
+            @Parameter(
+                    description = "Filtrar pelo tipo do artista",
+                    example = "BANDA"
+            )
             @RequestParam(required = false) String tipo,
 
-            @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "ASC")
+            @Parameter(
+                    description = "Direção da ordenação",
+                    example = "ASC",
+                    schema = @Schema(implementation = Sort.Direction.class)
+            )
             @RequestParam(defaultValue = "ASC") Sort.Direction order
     ) {
 
@@ -112,8 +121,9 @@ public class AlbumController {
             description = "Remove um álbum pelo seu ID."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Álbum excluído"),
-            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+            @ApiResponse(responseCode = "200", description = "Álbum excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Álbum não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteAlbumV1(
@@ -132,106 +142,112 @@ public class AlbumController {
     //----------------------------------------Atualizar Album Parcial -----------------------------------//
     @Operation(
             summary = "Atualizar parcialmente álbum",
-            description = "Atualiza um ou mais campos do álbum (nome, ano ou imagem)."
+            description = "Atualiza um ou mais campos do álbum.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AlbumRequestDTO.class)
+                    )
+            )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
-            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+            @ApiResponse(responseCode = "200", description = "Álbum atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Álbum não encontrado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AlbumResponseDTO> updatePartialAlbumV1(
 
-            @Parameter(description = "ID do álbum", required = true)
+            @Parameter(
+                    description = "ID do álbum",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do álbum", example = "Meteora")
-            @RequestParam(required = false) String nomeAlbum,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) String anoLancamento,
-
-            @Parameter(description = "Novo artista", example = "Gustavo Lima")
-            @RequestParam(required = false) UUID artista
+            @RequestBody AlbumRequestDTO album
 
     ) {
 
-        AlbumRequestDTO dto = new AlbumRequestDTO(
-                nomeAlbum,
-                anoLancamento,
-                Set.of(artista)
-        );
 
-        return ResponseEntity.ok(albumService.updatePartialV1(id, dto));
+        return ResponseEntity.ok(albumService.updatePartialV1(id, album));
     }
 
     //----------------------------------------Atualizar Album -----------------------------------//
     @Operation(
-            summary = "Atualizar álbum",
-            description = "Atualiza os campos do álbum (nome, ano ou imagem)."
+            summary = "Atualizar  álbum",
+            description = "Atualiza todos os campos do álbum.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AlbumRequestDTO.class)
+                    )
+            )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
-            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+            @ApiResponse(responseCode = "200", description = "Álbum atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Álbum não encontrado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AlbumResponseDTO> updateAlbumV1(
 
-            @Parameter(description = "ID do álbum", required = true)
+            @Parameter(
+                    description = "ID do álbum",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
             @PathVariable UUID id,
 
-            @Parameter(description = "Novo nome do álbum", example = "Meteora")
-            @RequestParam(required = false) String nomeAlbum,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) String anoLancamento,
-
-            @Parameter(description = "Novo ano de lançamento", example = "2003")
-            @RequestParam(required = false) UUID artista
+            @Valid @RequestPart("album") AlbumRequestDTO album
 
     ) {
 
-        AlbumRequestDTO dto = new AlbumRequestDTO(
-                nomeAlbum,
-                anoLancamento,
-                Set.of(artista)
-        );
-
-        return ResponseEntity.ok(albumService.updateV1(id, dto));
+        return ResponseEntity.ok(albumService.updateV1(id, album));
     }
 
     //----------------------------- Adicionar Artistas ao Album
     @Operation(
-            summary = "Atualizar álbum",
-            description = "Atualiza os campos do álbum (nome, ano ou imagem)."
+            summary = "Adicionar artistas ao álbum",
+            description = "Vincula um ou mais artistas a um álbum existente.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    description = "Lista de IDs dos artistas",
+                                    example = "[\"550e8400-e29b-41d4-a716-446655440000\"]",
+                                    type = "array",
+                                    implementation = UUID.class
+                            )
+                    )
+            )
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
-            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
+            @ApiResponse(responseCode = "200", description = "Artistas adicionados com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Álbum ou artista não encontrado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @PostMapping("/adicionar/artistas/{albumId}")
     public ResponseEntity<AlbumResponseDTO> adicionarArtistas(
 
-            @Parameter(description = "ID do álbum", required = true)
+            @Parameter(
+                    description = "ID do álbum",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
             @PathVariable UUID albumId,
 
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = AlbumRequestDTO.class)
-                    )
-            )
-
-            @RequestBody Set<UUID> artistasIds
+            @Valid @RequestBody Set<UUID> artistasIds
     ) {
-        AlbumResponseDTO response =
-                albumService.adicionarArtistas(albumId, artistasIds);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(albumService.adicionarArtistas(albumId, artistasIds));
     }
-
-
-
 
 
 }

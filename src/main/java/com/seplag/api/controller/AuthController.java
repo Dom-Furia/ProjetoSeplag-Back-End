@@ -13,157 +13,185 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Endpoints responsáveis pelo Registro e Login de usuario")
+@Tag(
+        name = "Auth",
+        description = "Endpoints responsáveis pelo registro, autenticação e gerenciamento de usuários"
+)
 public class AuthController {
 
     private final UserService userService;
-    private final RefreshTokenService refreshToken;
+    private final RefreshTokenService refreshTokenService;
     private final TokenService tokenService;
 
-
-    //---------------------------------------Listar Usuário---------------------------//
+    // ----------------------------- LISTAR USUÁRIOS ----------------------------- //
     @Operation(
-            summary = "Listar Usuários",
-            description = "Retorna usuarios"
+            summary = "Listar usuários",
+            description = "Retorna a lista de usuários cadastrados."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
-    })
-
-    @GetMapping("/users")
-    public List<UserResponseDTO> listUsers() {
-        return ResponseEntity.ok(userService.listUsers()).getBody();
-    }
-
-    //-----------------------------Registrar Usuario---------------------//
-    @Operation(
-            summary = "Criar novo Usuario",
-            description = "Cria um usuario informando nome, e-mail e senha"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Usuario criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
+    @GetMapping("/users")
+    public ResponseEntity<List<UserResponseDTO>> listUsers() {
 
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        return ResponseEntity.ok(
+                userService.listUsers()
+        );
+    }
+
+    // ----------------------------- REGISTRAR USUÁRIO ----------------------------- //
+    @Operation(
+            summary = "Registrar novo usuário",
+            description = "Cria um usuário informando nome, e-mail e senha.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = UserRequestDTO.class)
                     )
             )
-            @RequestBody UserRequestDTO dto
-    ){
-            return ResponseEntity.ok(userService.registerUser(dto));
-    }
-
-
-    //------------------------------Login Usuario-------------------------------------//
-    @Operation(
-            summary = "Login de Usuario",
-            description = "Acesso do usuario no sistema informando e-mail e senha"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Acesso Permitido"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos / Acesso negado"),
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<UserResponseDTO> register(
+            @RequestBody UserRequestDTO dto
+    ) {
+
+        return ResponseEntity
+                .status(201)
+                .body(userService.registerUser(dto));
+    }
+
+    // ----------------------------- LOGIN ----------------------------- //
+    @Operation(
+            summary = "Login de usuário",
+            description = "Autentica o usuário informando e-mail e senha.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = LoginRequestDTO.class)
                     )
             )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Autenticação realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Credenciais inválidas"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<LoginResponseDTO> login(
             @RequestBody LoginRequestDTO dto
     ) {
-        return ResponseEntity.ok(userService.login(dto));
+
+        return ResponseEntity.ok(
+                userService.login(dto)
+        );
     }
 
-    //--------------------------Excluir Usuário---------------------//
+    // ----------------------------- ATUALIZAR USUÁRIO ----------------------------- //
     @Operation(
-            summary = "Excluir Usuário",
-            description = "Remove um usuario pelo seu ID."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Usuário excluído"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
-    @DeleteMapping("/user/{id}")
-    public ResponseEntity<Map<String, String>> deleteUser(
-            @Parameter(description = "ID do usuário", required = true)
-            @PathVariable UUID id
-        )
-    {
-        userService.deleteUser(id);
-        return ResponseEntity.ok(Map.of("message", "Álbum excluído com sucesso."));
-    }
-
-    //------------------------------------Atualizar Usuário---------------------//
-    @Operation(
-            summary = "Atualizar álbum",
-            description = "Atualiza os campos do álbum (nome, ano ou imagem)."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Álbum atualizado"),
-            @ApiResponse(responseCode = "404", description = "Álbum não encontrado")
-    })
-    @PutMapping("/user/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(
-            @Parameter(description = "ID do álbum", required = true)
-            @PathVariable UUID id,
-
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            summary = "Atualizar usuário",
+            description = "Atualiza os dados do usuário.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = UserRequestDTO.class)
                     )
             )
-            @RequestBody UserRequestDTO dto
-    ){
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @PutMapping(value = "/user/{id}", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<UserResponseDTO> updateUser(
 
-        return ResponseEntity.ok(userService.updateUser(id, dto));
+            @Parameter(
+                    description = "ID do usuário",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable UUID id,
+
+            @RequestBody UserRequestDTO dto
+    ) {
+
+        return ResponseEntity.ok(
+                userService.updateUser(id, dto)
+        );
     }
 
-    //---------------------------- Token Refresh ------------------------------------//
+    // ----------------------------- EXCLUIR USUÁRIO ----------------------------- //
     @Operation(
-            summary = "Token de Renovação",
-            description = "Token de renovação da conexão"
+            summary = "Excluir usuário",
+            description = "Remove um usuário pelo seu identificador."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> deleteUser(
+
+            @Parameter(
+                    description = "ID do usuário",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable UUID id
+    ) {
+
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ----------------------------- REFRESH TOKEN ----------------------------- //
+    @Operation(
+            summary = "Renovar token de acesso",
+            description = "Gera um novo token de acesso a partir de um refresh token válido.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RefreshTokenRequestDTO.class)
+                    )
+            )
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Token gerado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Token Invalido ou Expirado")
+            @ApiResponse(responseCode = "404", description = "Refresh token inválido ou expirado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
-    @PostMapping("/refresh")
+    @PostMapping(value = "/refresh", consumes = "application/json", produces = "application/json")
     public ResponseEntity<TokenResponseDTO> refresh(
-            @Parameter(description = "Token", example = "8Z7U7SxaiEI87eIHZ2LzRgz8fjy41I7rtsBObZasfFk7Aroa7soLAMXGGyo3pZet")
-            @RequestBody RefreshTokenRequestDTO refreshtoken
+
+            @RequestBody RefreshTokenRequestDTO request
     ) {
 
-
-        User user = refreshToken.validate(refreshtoken.refreshtoken());
+        User user = refreshTokenService.validate(request.refreshtoken());
         String newAccessToken = tokenService.generateToken(user);
 
-        return ResponseEntity.ok(new TokenResponseDTO(newAccessToken));
+        return ResponseEntity.ok(
+                new TokenResponseDTO(newAccessToken)
+        );
     }
-
-
 }
+
