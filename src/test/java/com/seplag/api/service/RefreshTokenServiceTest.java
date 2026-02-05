@@ -4,6 +4,7 @@ import com.seplag.api.domain.refreshtoken.RefreshToken;
 import com.seplag.api.domain.user.User;
 import com.seplag.api.repositories.RefreshTokenRepository;
 import com.seplag.api.security.RefreshTokenService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,8 +27,12 @@ class RefreshTokenServiceTest {
     @Mock
     private RefreshTokenRepository repository;
 
-    @InjectMocks
     private RefreshTokenService service;
+
+    @BeforeEach
+    void setup() {
+        service = new RefreshTokenService(repository, 7);
+    }
 
     @Test
     @DisplayName("Deve criar o refreshtoken com sucesso")
@@ -44,10 +49,12 @@ class RefreshTokenServiceTest {
     @Test
     @DisplayName("O RefreshToken deve expirar em 7 dias")
     void refreshTokenDeveExpirarEm7Dias() {
+
         User user = new User();
 
         ArgumentCaptor<RefreshToken> captor =
                 ArgumentCaptor.forClass(RefreshToken.class);
+
         service.create(user);
 
         verify(repository).save(captor.capture());
@@ -55,8 +62,19 @@ class RefreshTokenServiceTest {
         RefreshToken saved = captor.getValue();
 
         assertNotNull(saved.getExpiracao());
-        assertTrue(saved.getExpiracao().isAfter(Instant.now()));
+
+        Instant agora = Instant.now();
+
+        Instant minimoEsperado = agora.plusSeconds(60 * 60 * 24 * 6); // 6 dias
+        Instant maximoEsperado = agora.plusSeconds(60 * 60 * 24 * 7 + 5); // 7 dias + margem
+
+        assertTrue(
+                saved.getExpiracao().isAfter(minimoEsperado) &&
+                        saved.getExpiracao().isBefore(maximoEsperado)
+        );
     }
+
+
     //----------------Teste de Exceções------------------------------//
 
     @Test

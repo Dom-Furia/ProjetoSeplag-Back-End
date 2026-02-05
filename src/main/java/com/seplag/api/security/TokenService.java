@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class TokenService {
 
     @Value("${api.security.token.secret}")
     private String secret;
+
+    @Value("${api.security.token.expiration}")
+    private long tokenMinutes;
 
     //Função para Gerar o Token
     public String generateToken(User user){
@@ -33,7 +37,7 @@ public class TokenService {
     }
 
     private Instant gererateExpirationDate(){
-        return LocalDateTime.now().plusMinutes(5).toInstant(ZoneOffset.of("-4"));
+        return Instant.now().plus(tokenMinutes, ChronoUnit.MINUTES);
     }
 
     //Função para Validar o Token
@@ -46,7 +50,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException e) {
-            return null;
+            throw new RuntimeException("Token inválido ou expirado");
         }
     }
 
