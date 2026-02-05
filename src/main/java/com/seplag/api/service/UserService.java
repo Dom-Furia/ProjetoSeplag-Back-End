@@ -3,26 +3,30 @@ package com.seplag.api.service;
 import com.seplag.api.domain.user.User;
 import com.seplag.api.dto.*;
 import com.seplag.api.repositories.UserRepository;
+import com.seplag.api.security.RefreshTokenService;
 import com.seplag.api.security.TokenService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+@Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService,  AuthenticationManager authenticationManager) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService, RefreshTokenService refreshTokenService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
+        this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
     }
 
@@ -122,12 +126,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         String accessToken = tokenService.generateToken(user);
-        //String refreshToken = refreshTokenService.create(user);
+        String refreshToken = refreshTokenService.create(user);
 
         return new LoginResponseDTO(
                 user.getName(),
                 accessToken,
-                "refreshToken"
+                refreshToken
         );
     }
 
