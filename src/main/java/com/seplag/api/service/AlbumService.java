@@ -78,8 +78,8 @@ public class AlbumService {
     @Transactional
     public AlbumResponseDTO adicionarArtistas(
             UUID albumId,
-            Set<UUID> artistasIds
-    ) {
+            Set<UUID> artistasIds)
+    {
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));
 
@@ -93,7 +93,7 @@ public class AlbumService {
     }
 
     //---------------------------- Listar Albuns ------------------------//
-    @Transactional
+    @Transactional(readOnly = true)
     public List<AlbumResponseDTO> getAllAlbunsV1(
             int page, int pageSize,
             String nomeArtista,
