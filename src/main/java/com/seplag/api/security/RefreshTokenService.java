@@ -5,8 +5,6 @@ import com.seplag.api.domain.refreshtoken.RefreshToken;
 import com.seplag.api.domain.user.User;
 import com.seplag.api.repositories.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
-
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.time.Instant;

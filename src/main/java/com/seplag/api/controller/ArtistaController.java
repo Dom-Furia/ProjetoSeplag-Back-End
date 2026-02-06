@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -192,7 +193,7 @@ public class ArtistaController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArtistaV1(
+    public ResponseEntity<Map<String, String>> deleteArtistaV1(
 
             @Parameter(
                     description = "ID do artista",
@@ -201,8 +202,7 @@ public class ArtistaController {
             )
             @PathVariable UUID id
     ) {
-
         artistaService.deleteByIdV1(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Álbum excluído com sucesso."));
     }
 }

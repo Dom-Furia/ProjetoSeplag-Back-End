@@ -6,6 +6,7 @@ import com.seplag.api.dto.AlbumRequestDTO;
 import com.seplag.api.dto.AlbumResponseDTO;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.TipoArtista;
+import com.seplag.api.dto.AlbumUpdateDTO;
 import com.seplag.api.dto.ArtistaResponseDTO;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
@@ -136,7 +137,7 @@ public class AlbumService {
 
     //---------------------------- Atualizar Album Parcial ------------------------//
     @Transactional
-    public AlbumResponseDTO updatePartialV1(UUID id, AlbumRequestDTO dto) {
+    public AlbumResponseDTO updatePartialV1(UUID id, AlbumUpdateDTO dto) {
 
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));
@@ -154,10 +155,18 @@ public class AlbumService {
 
     //---------------------------- Atualizar Album ------------------------//
     @Transactional
-    public AlbumResponseDTO updateV1(UUID id, AlbumRequestDTO dto) {
+    public AlbumResponseDTO updateV1(UUID id, AlbumUpdateDTO dto) {
 
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Álbum não encontrado"));
+
+        if (dto.nomealbum() == null || dto.nomealbum().isBlank()) {
+            throw new IllegalArgumentException("O nome do artista deve ser informado");
+        }
+
+        if (dto.anoLancamento() == null || dto.anoLancamento().isBlank()) {
+            throw new IllegalArgumentException("O ano de lançamento deve ser informado");
+        }
 
         album.setNomeAlbum(dto.nomealbum());
         album.setAnoLancamento(dto.anoLancamento());

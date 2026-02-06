@@ -3,6 +3,7 @@ package com.seplag.api.controller;
 
 import com.seplag.api.dto.AlbumRequestDTO;
 import com.seplag.api.dto.AlbumResponseDTO;
+import com.seplag.api.dto.AlbumUpdateDTO;
 import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -167,10 +168,9 @@ public class AlbumController {
             )
             @PathVariable UUID id,
 
-            @RequestBody AlbumRequestDTO album
+           @Valid @RequestBody AlbumUpdateDTO album
 
     ) {
-
 
         return ResponseEntity.ok(albumService.updatePartialV1(id, album));
     }
@@ -183,7 +183,7 @@ public class AlbumController {
                     required = true,
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = AlbumRequestDTO.class)
+                            schema = @Schema(implementation = AlbumUpdateDTO.class)
                     )
             )
     )
@@ -203,14 +203,14 @@ public class AlbumController {
             )
             @PathVariable UUID id,
 
-            @Valid @RequestPart("album") AlbumRequestDTO album
+            @Valid @RequestBody AlbumUpdateDTO album
 
     ) {
 
         return ResponseEntity.ok(albumService.updateV1(id, album));
     }
 
-    //----------------------------- Adicionar Artistas ao Album
+    //----------------------------- Adicionar Artistas ao Album ----------------------//
     @Operation(
             summary = "Adicionar artistas ao álbum",
             description = "Vincula um ou mais artistas a um álbum existente.",

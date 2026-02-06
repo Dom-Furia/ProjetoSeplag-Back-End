@@ -5,6 +5,7 @@ import com.seplag.api.domain.album.Album;
 import com.seplag.api.domain.artista.Artista;
 import com.seplag.api.domain.artista.TipoArtista;
 import com.seplag.api.dto.AlbumRequestDTO;
+import com.seplag.api.dto.AlbumUpdateDTO;
 import com.seplag.api.repositories.AlbumRepository;
 import com.seplag.api.repositories.ArtistaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -196,9 +197,8 @@ class AlbumServiceTest {
     @Test
     @DisplayName("Deve atualizar parcialmente o álbum")
     void updatePartialV1_sucesso() {
-        AlbumRequestDTO dto = new AlbumRequestDTO(
+        AlbumUpdateDTO dto = new AlbumUpdateDTO(
                 "Novo Nome",
-                null,
                 null
         );
 
@@ -216,10 +216,9 @@ class AlbumServiceTest {
     @Test
     @DisplayName("Deve atualizar álbum completamente")
     void updateV1_sucesso() {
-        AlbumRequestDTO dto = new AlbumRequestDTO(
+        AlbumUpdateDTO dto = new AlbumUpdateDTO(
                 "Nome Atualizado",
-                "2026",
-                null
+                "2026"
         );
 
         when(albumRepository.findById(album.getId()))

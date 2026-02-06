@@ -66,6 +66,7 @@ public class UserService {
     }
 
 
+    //---------------------------- Listar Usuarios ----------------------------------//
     public List<UserResponseDTO> listUsers() {
         return userRepository.findAll()
                 .stream()
@@ -77,6 +78,7 @@ public class UserService {
                 .toList();
     }
 
+    //---------------------------- Atualizar Usuario ----------------------------------//
     public UserResponseDTO updateUser(UUID id, UserRequestDTO dto) {
 
         User user = userRepository.findById(id)
@@ -103,6 +105,7 @@ public class UserService {
         );
     }
 
+    //---------------------------- Excluir Usuario ----------------------------------//
     public void deleteUser(UUID id) {
 
         if (!userRepository.existsById(id)) {
@@ -112,6 +115,7 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    //---------------------------- Login Usuario ----------------------------------//
     public LoginResponseDTO login(LoginRequestDTO logindto) {
 
         var authenticationToken =

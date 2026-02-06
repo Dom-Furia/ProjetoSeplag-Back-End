@@ -133,6 +133,14 @@ public class ArtistaService {
         Artista artista = artistaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Artista não encontrado"));
 
+        if (dto.nome() == null || dto.nome().isBlank()) {
+            throw new IllegalArgumentException("O nome do artista é obrigatório");
+        }
+
+        if (dto.tipo() == null || dto.tipo().isBlank()) {
+            throw new IllegalArgumentException("O Tipo de artista  é obrigatório");
+        }
+
         artista.setNome(dto.nome());
         artista.setNacionalidade(dto.nacionalidade());
         artista.setTipo(TipoArtista.valueOf(dto.tipo().toUpperCase()));

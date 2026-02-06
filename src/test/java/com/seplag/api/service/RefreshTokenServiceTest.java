@@ -31,6 +31,7 @@ class RefreshTokenServiceTest {
 
     @BeforeEach
     void setup() {
+
         service = new RefreshTokenService(repository, 7);
     }
 
