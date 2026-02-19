@@ -10,10 +10,14 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: America/Cuiaba
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - seplag-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -21,27 +25,42 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio
+    image: minio/minio:latest
     container_name: minio
     restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_SERVER_URL: http://localhost:9000
-    command: server /data --console-address ":9001"
+      TZ: America/Cuiaba
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - seplag-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: api-seplag
     restart: unless-stopped
     depends_on:
@@ -51,11 +70,18 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
       SERVER_PORT: 8080
-
+      TZ: America/Cuiaba
+      JAVA_OPTS: "-Duser.timezone=America/Cuiaba"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - seplag-network
 volumes:
   postgres_data:
   minio_data:
+
+networks:
+  seplag-network:
+    driver: bridge

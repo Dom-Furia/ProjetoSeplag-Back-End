@@ -3,6 +3,7 @@ package com.seplag.api.controller;
 import com.seplag.api.dto.*;
 import com.seplag.api.domain.user.*;
 import com.seplag.api.security.RefreshTokenService;
+import com.seplag.api.security.SecurityConfig;
 import com.seplag.api.security.TokenService;
 import com.seplag.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +36,8 @@ public class AuthController {
     // ----------------------------- LISTAR USUÁRIOS ----------------------------- //
     @Operation(
             summary = "Listar usuários",
-            description = "Retorna a lista de usuários cadastrados."
+            description = "Retorna a lista de usuários cadastrados.",
+            security = @SecurityRequirement(name = SecurityConfig.SECURITY)
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso"),
@@ -106,6 +109,7 @@ public class AuthController {
     @Operation(
             summary = "Atualizar usuário",
             description = "Atualiza os dados do usuário.",
+            security = @SecurityRequirement(name = SecurityConfig.SECURITY),
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -141,7 +145,8 @@ public class AuthController {
     // ----------------------------- EXCLUIR USUÁRIO ----------------------------- //
     @Operation(
             summary = "Excluir usuário",
-            description = "Remove um usuário pelo seu identificador."
+            description = "Remove um usuário pelo seu identificador.",
+            security = @SecurityRequirement(name = SecurityConfig.SECURITY)
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),

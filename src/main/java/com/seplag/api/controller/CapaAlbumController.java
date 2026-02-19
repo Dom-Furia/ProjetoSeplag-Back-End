@@ -11,11 +11,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -109,15 +111,14 @@ public class CapaAlbumController {
                     @ApiResponse(responseCode = "404", description = "Capa não encontrada")
             }
     )
+
+    // Exemplo de Redirect direto (O usuário nem vê a URL assinada)
     @GetMapping("/download/{capaId}")
-    public ResponseEntity<String> getDownloadLink(
-
-            @Parameter(description = "ID da capa", required = true)
-            @PathVariable UUID capaId
-    ) {
-
+    public ResponseEntity<Void> getDownloadLink(@PathVariable UUID capaId) {
         String link = capaAlbumService.download(capaId);
-        return ResponseEntity.ok(link);
+        return ResponseEntity.status(HttpStatus.FOUND) // 302 Redirect
+                .location(URI.create(link))
+                .build();
     }
 
     /* UPDATE */

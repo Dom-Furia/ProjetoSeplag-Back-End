@@ -68,6 +68,8 @@ public class CapaAlbumService {
         return toDTO(capa);
     }
 
+
+
     public String download(UUID capaId) {
 
         CapaAlbum capa = capaAlbumRepository.findById(capaId)

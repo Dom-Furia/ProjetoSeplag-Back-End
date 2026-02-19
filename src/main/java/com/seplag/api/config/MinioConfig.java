@@ -1,22 +1,36 @@
 package com.seplag.api.config;
 
 import io.minio.MinioClient;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.TimeZone;
+
 @Configuration
-// Cria o MinioClient para ser injetado em qualquer service
 public class MinioConfig {
 
+    @Value("${minio.url}") // http://minio:9000
+    private String minioUrl;
+
+    @Value("${minio.access-key}")
+    private String accessKey;
+
+    @Value("${minio.secret-key}")
+    private String secretKey;
+
+
     @Bean
-    public MinioClient minioClient(MinioProperties props) {
+    public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint(props.getUrl())
-                .credentials(
-                        props.getAccessKey(),
-                        props.getSecretKey()
-                )
+                .endpoint(minioUrl) // Conecta internamente via Docker network
+                .credentials(accessKey, secretKey)
                 .build();
+    }
+
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Cuiaba"));
     }
 }
